@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>NeuroSenSing Prototype — John Tan</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            neuro: {
+              orange: '#E07A53',      // Primary button & active icon terracotta from screenshots
+              deepOrange: '#D96B43',  // Splash logo coral-orange from screenshots
+              darkOrange: '#C55A32',
+              blush: '#FDF5F2',       // Soft warm blush banner background
+              peach: '#F9EBE5',       // Soft tint container
+              border: '#EFECE9',      // Warm gray card border
+              canvas: '#FAF8F6',      // Subtle warm app canvas
+              teal: '#2E7D6B',        // Calm secondary accent
+              tealLight: '#EBF5F2',
+              amber: '#D99B26',       // Warm highlight accent
+              amberLight: '#FDF6E7',
+              ink: '#1E1E1E',         // Dark charcoal primary text
+              muted: '#68635F',       // Muted warm gray secondary text
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Lock outer page to 100vh so it fits on desktop screens without scrolling */
+    html, body {
+      height: 100vh;
+      overflow: hidden;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #F4EFEA;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Mobile Phone Frame Sized to Fit Desktop Viewport Without Scrolling */
+    .phone-frame {
+      width: 365px;
+      height: calc(100vh - 64px);
+      max-height: 760px;
+      min-height: 520px;
+      border-radius: 38px;
+      border: 8px solid #1E1E1E;
+      background: #FAF8F6;
+      box-shadow: 0 18px 48px rgba(30, 30, 30, 0.22), 0 2px 8px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    /* Subtle Scrollbar Inside Phone Screen */
+    .phone-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .phone-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .phone-scroll::-webkit-scrollbar-thumb {
+      background: rgba(224, 122, 83, 0.32);
+      border-radius: 9999px;
+    }
+
+    /* Screen Transitions */
+    @keyframes fadeInSlide {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-screen {
+      animation: fadeInSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Senior Large Text Accessibility Toggle */
+    .senior-lg-text p,
+    .senior-lg-text span,
+    .senior-lg-text li {
+      font-size: 1.05em;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===================================================================== -->
+  <!-- ULTRA-COMPACT TOP BAR (40px height, 8px bottom margin)                -->
+  <!-- Contains ONLY NeuroSenSing Prototype Title + 3-View Toggle            -->
+  <!-- ===================================================================== -->
+  <header class="w-full max-w-[680px] h-[40px] mb-[8px] bg-white border border-[#E5DEC9] rounded-xl px-3 flex items-center justify-between shadow-sm shrink-0">
+    <!-- Orange Brain-Network Icon + Title -->
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 rounded-lg bg-neuro-deepOrange flex items-center justify-center shadow-sm shrink-0">
+        <svg class="w-4 h-4 text-white" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 46 C20 46 10 38 10 27 C10 16 20 10 33 10 C46 10 54 17 54 28 C54 37 47 43 39 45 L37 53 L30 46 Z" />
+          <circle cx="22" cy="22" r="2.5" fill="currentColor"/>
+          <circle cx="34" cy="17" r="2.5" fill="currentColor"/>
+          <circle cx="44" cy="24" r="2.5" fill="currentColor"/>
+          <circle cx="28" cy="31" r="2.5" fill="currentColor"/>
+          <circle cx="41" cy="35" r="2.5" fill="currentColor"/>
+          <circle cx="18" cy="34" r="2.5" fill="currentColor"/>
+          <line x1="22" y1="22" x2="34" y2="17" />
+          <line x1="34" y1="17" x2="44" y2="24" />
+          <line x1="22" y1="22" x2="28" y2="31" />
+          <line x1="34" y1="17" x2="28" y2="31" />
+          <line x1="44" y1="24" x2="28" y2="31" />
+          <line x1="44" y1="24" x2="41" y2="35" />
+          <line x1="28" y1="31" x2="41" y2="35" />
+          <line x1="22" y1="22" x2="18" y2="34" />
+          <line x1="18" y1="34" x2="28" y2="31" />
+        </svg>
+      </div>
+      <span class="font-display font-bold text-xs sm:text-[13px] text-neuro-ink tracking-tight whitespace-nowrap">
+        NeuroSenSing Prototype
+      </span>
+    </div>
+
+    <!-- 3-View Toggle Buttons -->
+    <div class="flex items-center gap-1 bg-[#F4EFEA] p-0.5 rounded-lg border border-neuro-border" role="tablist" aria-label="Role View Switcher">
+      <button id="roleBtn-patient" onclick="switchRole('patient')"
+        class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all bg-neuro-orange text-white shadow-sm whitespace-nowrap">
+        Patient View
+      </button>
+      <button id="roleBtn-caregiver" onclick="switchRole('caregiver')"
+        class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all text-neuro-muted hover:text-neuro-ink whitespace-nowrap">
+        Caregiver View
+      </button>
+      <button id="roleBtn-partner" onclick="switchRole('partner')"
+        class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all text-neuro-muted hover:text-neuro-ink whitespace-nowrap">
+        Community Care Partner View
+      </button>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- MOBILE PHONE PROTOTYPE FRAME                                          -->
+  <!-- ===================================================================== -->
+  <div class="phone-frame text-neuro-ink" id="phoneViewport">
+
+    <!-- 1. iOS TestFlight Status Bar (Matches Uploaded Screenshots) -->
+    <div class="bg-white px-4 pt-2 pb-1.5 flex items-center justify-between text-neuro-ink shrink-0 border-b border-gray-100 z-20">
+      <div class="flex flex-col leading-none">
+        <span class="font-bold text-[13px] tracking-tight pl-0.5">8:32</span>
+        <button onclick="openOnboardingScreen()" class="text-[9.5px] font-semibold text-neuro-ink flex items-center gap-0.5 hover:text-neuro-orange transition mt-0.5" title="Open TestFlight Study Screen">
+          <span>◄ TestFlight</span>
+        </button>
+      </div>
+
+      <!-- Active View Indicator Pill inside Phone -->
+      <div id="inPhoneRoleBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-neuro-blush text-neuro-deepOrange border border-neuro-orange/30 flex items-center gap-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-neuro-deepOrange"></span>
+        <span id="inPhoneRoleText">Patient: John Tan</span>
+      </div>
+
+      <!-- Signal, WiFi, Battery -->
+      <div class="flex items-center gap-1 text-[10px] text-neuro-ink">
+        <span class="font-bold tracking-tighter">::::</span>
+        <i class="fa-solid fa-wifi text-[10px]"></i>
+        <div class="w-5 h-2.5 border border-neuro-ink rounded-[2px] p-[1px] flex items-center">
+          <div class="w-full h-full bg-neuro-ink rounded-[0.5px]"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. In-Phone Toast Notification Banner -->
+    <div id="phoneToast" class="hidden absolute top-12 left-3 right-3 z-50 bg-neuro-ink text-white px-3.5 py-2.5 rounded-2xl shadow-xl border border-white/15 flex items-start gap-2.5 transition-all">
+      <div class="w-6 h-6 rounded-full bg-neuro-orange flex items-center justify-center shrink-0 mt-0.5">
+        <i class="fa-solid fa-check text-white text-[10px]"></i>
+      </div>
+      <div class="flex-1 text-[11px] leading-snug">
+        <p class="font-bold text-white" id="phoneToastTitle">Updated</p>
+        <p class="text-gray-200 mt-0.5" id="phoneToastBody">Action saved.</p>
+      </div>
+      <button onclick="hidePhoneToast()" class="text-gray-400 hover:text-white text-xs">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- 3. Scrollable Main Screen Container -->
+    <main id="phoneScreenContent" class="flex-1 overflow-y-auto phone-scroll px-3.5 pt-2.5 pb-4 space-y-3">
+      <!-- Populated dynamically by renderPhoneApp() -->
+    </main>
+
+    <!-- 4. In-Phone Reader & Website Preview Modal -->
+    <div id="phoneModal" class="hidden absolute inset-0 top-[42px] bg-neuro-canvas z-40 flex flex-col">
+      <div class="bg-white px-3.5 py-2.5 border-b border-neuro-border flex items-center justify-between shrink-0">
+        <button onclick="closePhoneModal()" class="flex items-center gap-1.5 text-xs font-bold text-neuro-orange hover:text-neuro-darkOrange">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Back</span>
+        </button>
+        <span id="phoneModalBadge" class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-neuro-blush text-neuro-deepOrange">
+          Article
+        </span>
+      </div>
+      <div id="phoneModalContent" class="flex-1 overflow-y-auto phone-scroll p-3.5 space-y-3"></div>
+    </div>
+
+    <!-- 5. TestFlight Onboarding Overlay (Exact Match of Uploaded Screenshots 1 & 2) -->
+    <div id="onboardingOverlay" class="hidden absolute inset-0 top-[42px] bg-white z-40 flex flex-col">
+      <div class="bg-neuro-blush/80 px-3.5 py-1.5 border-b border-neuro-border flex items-center justify-between text-[10.5px]">
+        <div class="flex items-center gap-1">
+          <button onclick="setOnboardingSlide('splash')" id="btnSlideSplash" class="px-2 py-0.5 rounded font-semibold text-neuro-muted hover:text-neuro-ink">
+            1. Splash Logo
+          </button>
+          <button onclick="setOnboardingSlide('guidelines')" id="btnSlideGuidelines" class="px-2 py-0.5 rounded font-semibold bg-neuro-orange text-white">
+            2. Study Welcome
+          </button>
+        </div>
+        <button onclick="closeOnboardingScreen()" class="font-bold text-neuro-deepOrange hover:underline">
+          Back to App →
+        </button>
+      </div>
+
+      <!-- Slide 1: Splash Logo (Screenshot 1) -->
+      <div id="slideSplashContent" class="hidden flex-1 flex flex-col items-center justify-center bg-white p-6">
+        <div class="w-24 h-24 rounded-[24px] bg-neuro-deepOrange flex items-center justify-center shadow-md">
+          <svg class="w-16 h-16 text-white" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M32 46 C20 46 10 38 10 27 C10 16 20 10 33 10 C46 10 54 17 54 28 C54 37 47 43 39 45 L37 53 L30 46 Z" />
+            <circle cx="22" cy="22" r="2.6" fill="currentColor"/>
+            <circle cx="34" cy="17" r="2.6" fill="currentColor"/>
+            <circle cx="44" cy="24" r="2.6" fill="currentColor"/>
+            <circle cx="28" cy="31" r="2.6" fill="currentColor"/>
+            <circle cx="41" cy="35" r="2.6" fill="currentColor"/>
+            <circle cx="18" cy="34" r="2.6" fill="currentColor"/>
+            <line x1="22" y1="22" x2="34" y2="17" />
+            <line x1="34" y1="17" x2="44" y2="24" />
+            <line x1="22" y1="22" x2="28" y2="31" />
+            <line x1="34" y1="17" x2="28" y2="31" />
+            <line x1="44" y1="24" x2="28" y2="31" />
+            <line x1="44" y1="24" x2="41" y2="35" />
+            <line x1="28" y1="31" x2="41" y2="35" />
+            <line x1="22" y1="22" x2="18" y2="34" />
+            <line x1="18" y1="34" x2="28" y2="31" />
+          </svg>
+        </div>
+        <button onclick="setOnboardingSlide('guidelines')" class="mt-6 px-4 py-2 rounded-xl bg-neuro-orange text-white text-xs font-semibold shadow">
+          View Study Guidelines →
+        </button>
+      </div>
+
+      <!-- Slide 2: NeuroSenSing Study Guidelines (Screenshot 2) -->
+      <div id="slideGuidelinesContent" class="flex-1 overflow-y-auto phone-scroll px-3.5 py-3 space-y-3 bg-white">
+        <div class="bg-neuro-blush rounded-2xl p-3.5 flex items-center justify-between gap-2 border border-[#F5E3DC]">
+          <div class="space-y-1">
+            <h2 class="font-display font-extrabold text-lg text-neuro-ink tracking-tight">NeuroSenSing</h2>
+            <p class="text-[11px] text-neuro-muted leading-snug">
+              Harnessing Digital Phenotyping for Remote Monitoring of Cognition in Early-Stage Alzheimer's Disease
+            </p>
+          </div>
+          <div class="w-16 h-14 shrink-0 flex items-center justify-center">
+            <svg viewBox="0 0 100 80" class="w-full h-full">
+              <ellipse cx="50" cy="68" rx="42" ry="5" fill="#E8EEF5" />
+              <circle cx="38" cy="28" r="7" fill="#1E1E1E" />
+              <path d="M32 36 Q38 35 43 42 L48 56 L30 56 Z" fill="#1E1E1E" />
+              <path d="M44 54 L66 54 L72 64 L58 65 Z" fill="#1D4ED8" />
+              <rect x="46" y="38" width="12" height="9" rx="1.5" fill="#E07A53" />
+            </svg>
+          </div>
+        </div>
+
+        <p class="text-[11.5px] text-neuro-ink leading-relaxed px-0.5">
+          Thank you for joining the NeuroSenSing study. Your participation helps advance cognitive health monitoring with wearable and smartphone data.
+        </p>
+
+        <div class="bg-white rounded-2xl p-3.5 border border-neuro-border shadow-sm space-y-2">
+          <h3 class="font-display font-bold text-xs text-neuro-ink">Guidelines</h3>
+          <p class="text-[11px] text-neuro-muted leading-snug">
+            To support the success of the study and data quality, please follow these guidelines:
+          </p>
+          <ul class="space-y-2 pt-0.5 text-[11.5px] text-neuro-ink">
+            <li class="flex items-start gap-2">
+              <i class="fa-solid fa-circle-check text-neuro-orange mt-0.5"></i>
+              <span>Wear your Fitbit during daily activities and sleep.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fa-solid fa-circle-check text-neuro-orange mt-0.5"></i>
+              <span>Keep your phone's location services enabled.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fa-solid fa-circle-check text-neuro-orange mt-0.5"></i>
+              <span>Complete the questionnaire and cognitive assessment at the start and end of the study.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fa-solid fa-circle-check text-neuro-orange mt-0.5"></i>
+              <span>Sync the NeuroSenSing and Fitbit apps at least every five days and keep them running in the background.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="bg-white rounded-2xl p-3.5 border border-neuro-border shadow-sm space-y-0.5">
+          <h3 class="font-display font-bold text-xs text-neuro-ink">Contact</h3>
+          <p class="text-[11px] text-neuro-muted">For enquiries, contact the study team at:</p>
+          <p class="text-[11.5px] font-medium text-neuro-ink underline">NeuroSenSing@nni.com.sg</p>
+        </div>
+
+        <button onclick="closeOnboardingScreen()" class="w-full py-3 rounded-xl bg-neuro-orange hover:bg-neuro-darkOrange text-white font-semibold text-xs shadow flex items-center justify-center gap-2 transition">
+          <i class="fa-solid fa-qrcode"></i>
+          <span>Login / Register with QR Code</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 6. Sticky Bottom Navigation Bar -->
+    <nav id="phoneBottomNav" class="bg-white border-t border-neuro-border px-1.5 pt-1.5 pb-1 flex items-center justify-around shrink-0 z-20"></nav>
+
+    <!-- iOS Home Indicator -->
+    <div class="bg-white pb-1.5 pt-0.5 flex justify-center shrink-0">
+      <div class="w-28 h-1 bg-black/80 rounded-full"></div>
+    </div>
+
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION DATA & INTERACTIVE CONTROLLERS                            -->
+  <!-- ===================================================================== -->
+  <script>
+    // -------------------------------------------------------------------------
+    // 1. STATE FOR PERSONA: JOHN TAN (AGE 72, MCI)
+    // -------------------------------------------------------------------------
+    const state = {
+      role: 'patient',          // 'patient' | 'caregiver' | 'partner'
+      tab: 'home',              // 'home' | 'data' | 'articles' | 'programmes' | 'profile'
+      articleFilter: 'all',     // 'all' | 'lived' | 'science'
+      largeFont: false,
+      reminder3pmActive: true,
+      sarahHearted: false,
+
+      // John Tan's Daily Metrics
+      todaySteps: 1120,
+      goalSteps: 2000,          // Displayed as "Current Goal: 2k"
+      peakSpeed: 70,            // 70 steps/min at 8 AM
+
+      // 7-Day Step Count (Mon - Today: 1,120)
+      weeklySteps: [
+        { day: 'Mon',   steps: 980,  isToday: false },
+        { day: 'Tue',   steps: 1050, isToday: false },
+        { day: 'Wed',   steps: 940,  isToday: false },
+        { day: 'Thu',   steps: 1180, isToday: false },
+        { day: 'Fri',   steps: 1020, isToday: false },
+        { day: 'Sat',   steps: 1260, isToday: false },
+        { day: 'Today', steps: 1120, isToday: true }
+      ],
+
+      // Walking Speed (steps/min) against Hours of the Day (6 AM to 8 PM)
+      hourlySpeed: [
+        { hour: '6a',  speed: 22 },
+        { hour: '7a',  speed: 46 },
+        { hour: '8a',  speed: 70 },
+        { hour: '9a',  speed: 54 },
+        { hour: '10a', speed: 38 },
+        { hour: '11a', speed: 34 },
+        { hour: '12p', speed: 42 },
+        { hour: '1p',  speed: 16 },
+        { hour: '2p',  speed: 12 },
+        { hour: '3p',  speed: 44 },
+        { hour: '4p',  speed: 52 },
+        { hour: '5p',  speed: 58 },
+        { hour: '6p',  speed: 40 },
+        { hour: '7p',  speed: 26 },
+        { hour: '8p',  speed: 18 }
+      ],
+
+      // Steps Across the Day by Hour (6 AM to 8 PM)
+      hourlySteps: [
+        { hour: '6a',  steps: 40,  quiet: false },
+        { hour: '7a',  steps: 165, quiet: false },
+        { hour: '8a',  steps: 280, quiet: false },
+        { hour: '9a',  steps: 195, quiet: false },
+        { hour: '10a', steps: 95,  quiet: false },
+        { hour: '11a', steps: 70,  quiet: false },
+        { hour: '12p', steps: 85,  quiet: false },
+        { hour: '1p',  steps: 12,  quiet: true },
+        { hour: '2p',  steps: 8,   quiet: true },
+        { hour: '3p',  steps: 65,  quiet: false },
+        { hour: '4p',  steps: 105, quiet: false },
+        { hour: '5p',  steps: 0,   quiet: false },
+        { hour: '6p',  steps: 0,   quiet: false },
+        { hour: '7p',  steps: 0,   quiet: false },
+        { hour: '8p',  steps: 0,   quiet: false }
+      ],
+
+      // Daily Inspiration Quote (Placed directly ABOVE Sarah's encouragement card)
+      quote: "Every step forward, no matter how small, is a step toward a stronger mind and brighter day.",
+
+      // Daughter Sarah Tan's Encouragement Note
+      sarahNote: {
+        from: "Sarah Tan (Daughter)",
+        time: "Today, 8:15 AM",
+        text: "Good morning Dad! You are doing so well this week. Let's take a brisk 15-minute walk around the park together after dinner!"
+      },
+
+      // Recommended Actions (No bracketed baseline notes, no category labels)
+      actions: [
+        {
+          id: 'act-1',
+          text: 'Walk 880 more steps today to reach your 2,000-step goal.',
+          done: false
+        },
+        {
+          id: 'act-2',
+          text: 'Include 15–20 minutes of brisk walking during your morning or evening stroll.',
+          done: false
+        },
+        {
+          id: 'act-3',
+          text: 'Take a short 5-minute walk around the block at 3:00 PM.',
+          done: true
+        }
+      ]
+    };
+
+    // -------------------------------------------------------------------------
+    // 2. ARTICLES CATALOG (3 REAL STORIES + 9 PUBLISHED SCIENTIFIC PAPERS)
+    // -------------------------------------------------------------------------
+    const articlesCatalog = [
+      // REAL STORIES
+      {
+        id: 'story-tan',
+        category: 'lived',
+        badge: 'Real Stories',
+        badgeClass: 'bg-neuro-blush text-neuro-deepOrange border-neuro-orange/30',
+        person: 'Mdm Tan, Age 74',
+        title: 'From Slow Morning Strolls to Brisk Kopitiam Walks: How Picking Up My Pace Cleared My Morning Fog',
+        journalOrMeta: 'Real Stories • Toa Payoh Resident',
+        summary: 'Starting from 1,100 daily steps, Mdm Tan added a 15-minute brisk walk each morning and noticed sharper recall of daily errands and brighter energy.',
+        fullText: `
+          <div class="bg-neuro-blush p-3 rounded-xl border border-neuro-orange/25 text-xs text-neuro-ink space-y-1">
+            <div class="font-bold text-neuro-deepOrange">Mdm Tan, Age 74 (Toa Payoh)</div>
+            <p class="italic">"I used to shuffle slowly to the market. Walking briskly for just 15 minutes every morning made my mind feel awake for the whole day."</p>
+          </div>
+          <p class="text-xs text-neuro-ink leading-relaxed">
+            Mdm Tan started with a simple 2,000-step daily target and practiced walking at a purposeful brisk pace on her way to the kopitiam each morning. Over four months, she built up to 3,400 steps a day and felt much more confident remembering names and appointments.
+          </p>
+        `
+      },
+      {
+        id: 'story-lim',
+        category: 'lived',
+        badge: 'Real Stories',
+        badgeClass: 'bg-neuro-amberLight text-amber-800 border-amber-300',
+        person: 'Mr Lim, Age 71',
+        title: 'Breaking Up Afternoon TV Time with a 3:00 PM Walk Around the Void Deck',
+        journalOrMeta: 'Real Stories • Bedok Resident',
+        summary: 'Using a 3:00 PM movement reminder to take a short afternoon walk helped Mr Lim stay consistent every day and sleep better at night.',
+        fullText: `
+          <div class="bg-neuro-amberLight p-3 rounded-xl border border-amber-300 text-xs text-neuro-ink space-y-1">
+            <div class="font-bold text-amber-900">Mr Lim, Age 71 (Bedok)</div>
+            <p class="italic">"Sitting from lunch until dinner left me sluggish. A 5-minute walk at 3:00 PM keeps my steps steady every single day."</p>
+          </div>
+          <p class="text-xs text-neuro-ink leading-relaxed">
+            By breaking up his afternoon sitting window between 1:00 PM and 3:00 PM with a short walk around his block, Mr Lim kept his daily step counts steady across the week and noticed faster mental focus.
+          </p>
+        `
+      },
+      {
+        id: 'story-rahimah',
+        category: 'lived',
+        badge: 'Real Stories',
+        badgeClass: 'bg-neuro-tealLight text-neuro-teal border-neuro-teal/30',
+        person: 'Mdm Rahimah, Age 69',
+        title: 'Walking with My Daughter & Joining Weekly HAPPY Group Sessions',
+        journalOrMeta: 'Real Stories • Tampines Resident',
+        summary: 'Combining evening brisk walks with her daughter and weekly community dual-task classes helped Mdm Rahimah double her daily steps.',
+        fullText: `
+          <div class="bg-neuro-tealLight p-3 rounded-xl border border-neuro-teal/30 text-xs text-neuro-ink space-y-1">
+            <div class="font-bold text-neuro-teal">Mdm Rahimah, Age 69 (Tampines)</div>
+            <p class="italic">"Walking together after dinner turned exercise into our favourite family catch-up time."</p>
+          </div>
+          <p class="text-xs text-neuro-ink leading-relaxed">
+            Mdm Rahimah paired a 20-minute evening brisk walk with her daughter with twice-weekly HAPPY exercises at her nearby Active Ageing Centre, boosting both her walking speed and memory confidence.
+          </p>
+        `
+      },
+
+      // SCIENTIFIC EVIDENCE (9 REAL PUBLISHED TITLES FROM THE LITERATURE REVIEW)
+      {
+        id: 'sci-1',
+        category: 'science',
+        badge: 'Scientific Evidence',
+        badgeClass: 'bg-blue-50 text-blue-800 border-blue-200',
+        person: 'del Pozo Cruz et al. (2022)',
+        title: 'Association of Daily Step Count and Intensity With Incident Dementia in 78,430 Adults Living in the UK',
+        journalOrMeta: 'JAMA Neurology, 79(10), 1059–1063',
+        summary: 'Higher daily step counts and faster peak 30-minute walking cadence (purposeful steps ≥40 steps/min) are strongly associated with lower dementia incidence.',
+        fullText: `
+          <div class="bg-blue-50 p-3 rounded-xl border border-blue-200 text-xs text-neuro-ink">
+            <strong>Published Study:</strong> del Pozo Cruz, B., Ahmadi, M., Naismith, S. L., &amp; Stamatakis, E. (2022). <em>JAMA Neurology, 79</em>(10), 1059–1063.
+          </div>
+          <p class="text-xs text-neuro-ink leading-relaxed">
+            Across 78,430 adults tracked via wrist accelerometers, higher daily step counts and purposeful brisk walking (≥40 steps/min, with optimal peak 30-minute cadence at 112 steps/min) were strongly linked to reduced dementia risk.
+          </p>
+        `
+      },
+      {
+        id: 'sci-2',
+        category: 'science',
+        badge: 'Scientific Evidence',
+        badgeClass: 'bg-blue-50 text-blue-800 border-blue-200',
+        person: 'Chan et al. (2025)',
+        title: 'Daily-life walking speed, running duration and bedtime from wrist-worn sensors predict incident dementia: A Watch Walk-UK Biobank study',
+        journalOrMeta: 'International Psychogeriatrics, Article 100031',
+        summary: 'Every increase of 3,271 daily steps reduces dementia onset hazard by 30%, and faster daily walking speed protects cognitive health.',
+        fullText: `
+          <div class="bg-blue-50 p-3 rounded-xl border border-blue-200 text-xs text-neuro-ink">
+            <strong>Published Study:</strong> Chan, L. L. Y., Espinoza Cerda, M. T., Brodie, M. A., Lord, S. R., &amp; Taylor, M. E. (2025). <em>International Psychogeriatrics</em>, Article 100031.
+          </div>
+          <p class="text-xs text-neuro-ink leading-relaxed">
+            Using wrist-worn sensor gait biomarkers, this study found that every increase of 3,271 daily steps reduced dementia onset hazard by 30%, and cognitively unimpaired older adults maintained higher daily steps (7,787 vs. 6,616 steps) and faster maximal walking speeds.
+          </p>
+        `
+      },
+      {
+        id: 'sci-3',
+        category: 'science',
+        badge: 'Scientific Evidence',
+        badgeClass: 'bg-blue-50 text-blue-800 border-blue-200',
+        person: 'Kimura et al. (2019)',
+        title: 'Modifiable lifestyle factors and cognitive function in older people: A cross-sectional observational study',
+        journalOrMeta: 'Frontiers in Neurology, 10, Article 401',
+        summary: 'Daily step count was the #1 predictor of MMSE cognitive scores among 17 lifestyle features, with optimal cognition around 7,000–8,000 steps.',
+        fullText: `
+          <div class="bg-blue-50 p-3 rounded-xl border border-blue-200 text-xs text-neuro-ink">
+            <strong>Published Study:</strong> Kimura, N., Aso, Y., Yabuuchi, K., et al. (2019). <em>Frontiers in Neurology, 10</em>, Article 401.
+          </div>
+          <p class="text-xs text-neuro-ink leading-relaxed">
+            When 17 lifestyle features were analysed using a Random Forest model, daily step count was the top predictor of Mini-Mental State Examination (MMSE) scores ($r^2 = 0.759, r = 0.71$), with progressive gains leading up to 7,000–8,000 daily steps.
+          </p>
+        `
+      },
+      {
+        id: 'sci-4',
+        category: 'science',
+        badge: 'Scientific Evidence',
+        badgeClass: 'bg-blue-50 text-blue-800 border-blue-200',
+        person: 'Pani et al. (2025)',
+        title: 'Twelve-month pilot study on wearables to enhance health and quality of life in older adults',
+        journalOrMeta: 'Health and Technology (2025)',
+        summary: 'Older adults who maintained higher daily step counts over 12 months experienced measurable improvements in MMSE cognitive scores.',
+        fullText: `
+          <div class="bg-blue-50 p-3 rounded-xl border border-blue-200 text-xs text-neuro-ink">
+            <strong>Published Study:</strong> Pani, J., Fiorini, L., Rovini, E., et al. (2025). <em>Health and Technology</em>.
+          </div>
+          <p class="text-xs text-neuro-ink leading-relaxed">
+            Over a 12-month wearable monitoring period, older adults who sustained higher daily step counts showed longitudinal increases in their MMSE cognitive scores and overall quality of life.
+          </p>
+        `
+      },
+      {
+        id: 'sci-5',
+        category: 'science',
+        badge: 'Scientific Evidence',
+        badgeClass: 'bg-blue-50 text-blue-800 border-blue-200',
+        person: 'Carpi et al. (2026)',
+        title: 'Associations of daily step counts with cognitive, clinical, and resting-state electroencephalographic measures in patients with cognitive decline due to Alzheimer\'s disease',
+        journalOrMeta: 'GeroScience (2026)',
+        summary: 'Faster peak walking cadence (70.0 steps/min in MCI vs. 82.0 steps/min in cognitively unimpaired adults) is linked to stronger cognitive and brain activity measures.',
+        fullText: `
+          <div class="bg-blue-50 p-3 rounded-xl border border-blue-200 text-xs text-neuro-ink">
+            <strong>Published Study:</strong> Carpi, M., De Bartolo, M., Henao Isaza, V., et al. (2026). <em>GeroScience</em>.
+          </div>
+          <p class="text-xs text-neuro-ink leading-relaxed">
+            Found that peak walking cadence averages 53.6 steps/min in individuals with Alzheimer's disease, 70.0 steps/min in Mild Cognitive Impairment (MCI), and 82.0 steps/min in cognitively unimpaired adults—supporting daily brisk walking interventions.
+          </p>
+        `
+      },
+      {
+        id: 'sci-6',
+        category: 'science',
+        badge: 'Scientific Evidence',
+        badgeClass: 'bg-blue-50 text-blue-800 border-blue-200',
+        person: 'Fan et al. (2025)',
+        title: 'From physical activity patterns to cognitive status: Development and validation of novel digital biomarkers for cognitive assessment in older adults',
+        journalOrMeta: 'International Journal of Behavioral Nutrition and Physical Activity, 22, Article 11',
+        summary: 'Seniors with better cognitive function demonstrate more dynamic daily activity patterns and regular hourly movement rhythms.',
+        fullText: `
+          <div class="bg-blue-50 p-3 rounded-xl border border-blue-200 text-xs text-neuro-ink">
+            <strong>Published Study:</strong> Fan, L.-J., Wang, F.-Y., Zhao, J.-H., et al. (2025). <em>Int. J. Behavioral Nutrition and Physical Activity, 22</em>, Article 11.
+          </div>
+          <p class="text-xs text-neuro-ink leading-relaxed">
+            Demonstrated that consistent hourly movement patterns across the day and regular daily activity rhythms are key digital biomarkers associated with stronger cognitive function in older adults.
+          </p>
+        `
+      },
+      {
+        id: 'sci-7',
+        category: 'science',
+        badge: 'Scientific Evidence',
+        badgeClass: 'bg-blue-50 text-blue-800 border-blue-200',
+        person: 'Cadwallader et al. (2026)',
+        title: 'The active ingredients: Physical activity features linked to healthy brain aging',
+        journalOrMeta: 'Alzheimer\'s Research & Therapy, 18, Article 88',
+        summary: 'Exercise session frequency and brisk stepping cadence are top predictors of healthy brain structure and lower white matter hyperintensities.',
+        fullText: `
+          <div class="bg-blue-50 p-3 rounded-xl border border-blue-200 text-xs text-neuro-ink">
+            <strong>Published Study:</strong> Cadwallader, C. J., Pinheiro-Chagas, P., Saloner, R., et al. (2026). <em>Alzheimer's Research &amp; Therapy, 18</em>, Article 88.
+          </div>
+          <p class="text-xs text-neuro-ink leading-relaxed">
+            Identified that exercise session frequency and stepping cadence are the top physical activity predictors linked to healthier brain aging and lower white matter hyperintensities.
+          </p>
+        `
+      },
+      {
+        id: 'sci-8',
+        category: 'science',
+        badge: 'Scientific Evidence',
+        badgeClass: 'bg-blue-50 text-blue-800 border-blue-200',
+        person: 'O\'Brien et al. (2024)',
+        title: 'Association between changes in habitual stepping activity and cognition in older adults',
+        journalOrMeta: 'Scientific Reports, 14',
+        summary: 'Consistent day-to-day step counts (lower step variability across consecutive days) are associated with faster cognitive switching reaction time.',
+        fullText: `
+          <div class="bg-blue-50 p-3 rounded-xl border border-blue-200 text-xs text-neuro-ink">
+            <strong>Published Study:</strong> O'Brien, M. W., Bray, N. W., Quirion, I., et al. (2024). <em>Scientific Reports, 14</em>.
+          </div>
+          <p class="text-xs text-neuro-ink leading-relaxed">
+            Showed that reducing day-to-day step variability between consecutive days is associated with greater improvements in executive switching reaction time on the Stroop cognitive task.
+          </p>
+        `
+      },
+      {
+        id: 'sci-9',
+        category: 'science',
+        badge: 'Scientific Evidence',
+        badgeClass: 'bg-blue-50 text-blue-800 border-blue-200',
+        person: 'Paolillo et al. (2023)',
+        title: 'Data-driven physical actigraphy patterns relate to cognitive and vascular health in older adults',
+        journalOrMeta: 'Experimental Gerontology, 178, Article 112231',
+        summary: 'Older adults with active daily profiles and lower sedentary sitting time achieve higher executive function and cognitive test scores.',
+        fullText: `
+          <div class="bg-blue-50 p-3 rounded-xl border border-blue-200 text-xs text-neuro-ink">
+            <strong>Published Study:</strong> Paolillo, E. W., Lee, S. Y., VandeBunte, A., et al. (2023). <em>Experimental Gerontology, 178</em>, Article 112231.
+          </div>
+          <p class="text-xs text-neuro-ink leading-relaxed">
+            Found that executive function and MMSE cognitive performance were significantly higher in older adults with regular daily physical activity and lower sedentary time.
+          </p>
+        `
+      }
+    ];
+
+    // -------------------------------------------------------------------------
+    // 3. SINGAPORE COMMUNITY PROGRAMMES CATALOG (10 PROGRAMMES FROM PDF)
+    // -------------------------------------------------------------------------
+    const communityProgrammesCatalog = [
+      {
+        id: 'prog-1',
+        name: 'ENLIVEN (CIP 2.0)',
+        org: 'Yong-en Care Centre',
+        venue: 'Chinatown / Kreta Ayer Community Hub',
+        schedule: '7 weeks, twice weekly, 3-hour group sessions',
+        audience: 'Seniors with mild to moderate cognitive concerns',
+        description: 'Physical, cognitive, and social group activities featuring a dedicated "Build Strength" strand focused on movement and mobility.',
+        url: 'https://www.yong-en.org.sg/wp-content/uploads/2025/06/ENLIVEN-CIP2.0-By-Yong-en-Care-Centre_June2025.pdf'
+      },
+      {
+        id: 'prog-2',
+        name: 'Fun with Friends Plus',
+        org: 'NTUC Health',
+        venue: 'NTUC Health Active Ageing Centres & Care Centres Islandwide',
+        schedule: '33 weeks (twice weekly for first 7 weeks, weekly for next 26 weeks; 40 sessions)',
+        audience: 'Seniors with mild to moderate cognitive decline',
+        description: 'Combines physical exercise, art and music activities, cognitive stimulation, and cooking/baking in a social group setting.',
+        url: 'https://ntuchealth.sg/elderly-care/services/flexible-care/fun-with-friends'
+      },
+      {
+        id: 'prog-3',
+        name: 'Move It Feel Strong',
+        org: 'Health Promotion Board (HPB)',
+        venue: 'Neighbourhood Community Clubs & Residents\' Network Centres across Singapore',
+        schedule: 'Weekly neighbourhood sessions',
+        audience: 'Seniors who can walk independently or with walking aid',
+        description: 'Neighbourhood sessions teaching strength, balance, and flexibility exercises to grow stronger and reduce risk of falling, joint pain, and stiffness.',
+        url: 'https://www.healthhub.sg/well-being-and-lifestyle/active-ageing/move-it-feel-strong'
+      },
+      {
+        id: 'prog-4',
+        name: 'Steady Lah',
+        org: 'Health Promotion Board (HPB)',
+        venue: 'Community Hubs & Active Ageing Centres across Singapore',
+        schedule: 'Weekly for 12 weeks',
+        audience: 'Seniors with early signs of frailty',
+        description: 'Improves physical function with a focus on muscle strength and nutrition, combining progressive strengthening exercises, workshops, and home routines.',
+        url: 'https://www.healthhub.sg'
+      },
+      {
+        id: 'prog-5',
+        name: 'Gym Tonic',
+        org: 'Lien Foundation / Lions Befrienders & AACs',
+        venue: '30+ Community Sites & Active Ageing Centres across Singapore',
+        schedule: '30-min sessions twice weekly (12-week, 24-session programme)',
+        audience: 'Ambulant seniors aged 60 and above',
+        description: 'Customised strength training regime on software-enabled, senior-friendly pneumatic gym machines with an average 20% strength increase after 3 months.',
+        url: 'https://www.gymtonic.sg/'
+      },
+      {
+        id: 'prog-6',
+        name: 'HAPPY (Healthy Ageing Promotion Programme For You)',
+        org: 'Health Promotion Board (HPB) / AIC',
+        venue: 'Active Ageing Centres & Community Void Decks Islandwide',
+        schedule: '60 minutes, once or twice weekly',
+        audience: 'Seniors showing early signs of frailty or memory decline',
+        description: 'Community-based dual-task programme combining physical exercises with cognitive tasks—such as marching in place while counting backwards—to strengthen body and mind.',
+        url: 'https://www.aic.sg'
+      },
+      {
+        id: 'prog-7',
+        name: 'Combat Age-Related Loss of Muscle (CALM) 1.0',
+        org: 'ActiveSG',
+        venue: 'Active Health Labs at SportSG ActiveSG Centres Islandwide',
+        schedule: '8 weeks, 1 session per week for 60 minutes',
+        audience: 'Individuals aged 60 and above',
+        description: 'Active Health programme helping seniors understand muscle health through functional assessment, guided strength training, and health coaching.',
+        url: 'https://www.activesgcircle.gov.sg'
+      },
+      {
+        id: 'prog-8',
+        name: 'Active Silvers Functional Fitness Program',
+        org: 'Active Silvers',
+        venue: 'Community Group Venues & Virtual Home Sessions',
+        schedule: 'Physical: Once a week | Virtual: Variable',
+        audience: 'Seniors showing signs of frailty',
+        description: 'Tailored fitness programme enhancing strength, mobility, and balance through exercise prescriptions to help seniors stay active and reduce fall risk.',
+        url: 'https://www.activesilvers.com.sg'
+      },
+      {
+        id: 'prog-9',
+        name: 'Home Exercises for Healthy Bones',
+        org: 'Singapore General Hospital (SGH)',
+        venue: 'At Home / Online Public Physiotherapy Portal',
+        schedule: 'Open for daily self-paced use',
+        audience: 'All seniors',
+        description: 'Free online physiotherapy materials with safe, easy-to-follow at-home exercises for seniors.',
+        url: 'https://www.sgh.com.sg'
+      },
+      {
+        id: 'prog-10',
+        name: 'Age Strong (Healthy 365 App)',
+        org: 'Health Promotion Board (HPB)',
+        venue: 'Healthy 365 Mobile App (At Home / Neighbourhood)',
+        schedule: '12-week holistic digital programme (1 daily task; 20–25 min SBF workouts)',
+        audience: 'Seniors aged 50+ (with optional caregiver support)',
+        description: 'Empowering 12-week digital health programme with bite-sized daily quizzes and customised 20–25 minute Strength, Balance and Flexibility (SBF) workouts.',
+        url: 'https://www.healthhub.sg/programmes/agestrong'
+      }
+    ];
+
+    // -------------------------------------------------------------------------
+    // 4. ROLE & TAB NAVIGATION CONTROLLERS
+    // -------------------------------------------------------------------------
+    function switchRole(newRole) {
+      state.role = newRole;
+      closePhoneModal();
+      closeOnboardingScreen();
+
+      if (newRole === 'partner') {
+        state.tab = 'home';
+      }
+
+      updateRoleHeaderButtons();
+      renderPhoneApp();
+      const scroller = document.getElementById('phoneScreenContent');
+      if (scroller) scroller.scrollTop = 0;
+    }
+
+    function switchTab(newTab) {
+      state.tab = newTab;
+      closePhoneModal();
+      renderPhoneApp();
+      const scroller = document.getElementById('phoneScreenContent');
+      if (scroller) scroller.scrollTop = 0;
+    }
+
+    function updateRoleHeaderButtons() {
+      const roles = ['patient', 'caregiver', 'partner'];
+      roles.forEach(r => {
+        const btn = document.getElementById(`roleBtn-${r}`);
+        if (!btn) return;
+        if (r === state.role) {
+          btn.className = 'px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all bg-neuro-orange text-white shadow-sm whitespace-nowrap';
+        } else {
+          btn.className = 'px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all text-neuro-muted hover:text-neuro-ink whitespace-nowrap';
+        }
+      });
+
+      const badgeText = document.getElementById('inPhoneRoleText');
+      const badgeBox = document.getElementById('inPhoneRoleBadge');
+      if (state.role === 'patient') {
+        badgeText.textContent = 'Patient: John Tan';
+        badgeBox.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-neuro-blush text-neuro-deepOrange border border-neuro-orange/30 flex items-center gap-1';
+      } else if (state.role === 'caregiver') {
+        badgeText.textContent = 'Caregiver: Sarah Tan';
+        badgeBox.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-1';
+      } else {
+        badgeText.textContent = 'Community Care Partner';
+        badgeBox.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1';
+      }
+    }
+
+    function toggleActionItem(actionId) {
+      const item = state.actions.find(a => a.id === actionId);
+      if (item) {
+        item.done = !item.done;
+        renderPhoneApp();
+        showPhoneToast(
+          item.done ? 'Action Completed 👏' : 'Action Unchecked',
+          item.text
+        );
+      }
+    }
+
+    function toggleSarahHeart() {
+      state.sarahHearted = !state.sarahHearted;
+      renderPhoneApp();
+      if (state.sarahHearted) {
+        showPhoneToast('Sent ❤️ to Sarah', 'Sarah received your heart reaction!');
+      }
+    }
+
+    function sendCaregiverEncouragement(text) {
+      state.sarahNote.text = text;
+      state.sarahNote.time = 'Just now';
+      renderPhoneApp();
+      showPhoneToast('Encouragement Sent to John', `"${text}"`);
+    }
+
+    function toggleLargeTextMode() {
+      state.largeFont = !state.largeFont;
+      const mainEl = document.getElementById('phoneScreenContent');
+      if (state.largeFont) mainEl.classList.add('senior-lg-text');
+      else mainEl.classList.remove('senior-lg-text');
+      renderPhoneApp();
+    }
+
+    function toggle3pmReminder() {
+      state.reminder3pmActive = !state.reminder3pmActive;
+      renderPhoneApp();
+      showPhoneToast(
+        '3:00 PM Movement Reminder',
+        state.reminder3pmActive ? 'Afternoon 3:00 PM walk reminder is active.' : 'Afternoon 3:00 PM walk reminder paused.'
+      );
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. IN-PHONE MODALS (ARTICLES & PROGRAMME WEBSITE PREVIEW)
+    // -------------------------------------------------------------------------
+    function openArticleModal(articleId) {
+      const item = articlesCatalog.find(a => a.id === articleId);
+      if (!item) return;
+
+      const modal = document.getElementById('phoneModal');
+      const badge = document.getElementById('phoneModalBadge');
+      const content = document.getElementById('phoneModalContent');
+
+      badge.textContent = item.badge;
+      content.innerHTML = `
+        <div class="space-y-2.5 animate-screen">
+          <div class="text-[10.5px] font-semibold text-neuro-deepOrange">${item.journalOrMeta}</div>
+          <h3 class="font-display font-extrabold text-sm text-neuro-ink leading-snug">${item.title}</h3>
+          <div class="text-[11px] font-medium text-neuro-muted">${item.person}</div>
+          <div class="space-y-2 pt-1">
+            ${item.fullText}
+          </div>
+          <div class="pt-3">
+            <button onclick="closePhoneModal()" class="w-full py-2.5 rounded-xl bg-neuro-orange text-white font-semibold text-xs shadow">
+              Close Article
+            </button>
+          </div>
+        </div>
+      `;
+      modal.classList.remove('hidden');
+    }
+
+    function openProgrammeWebsiteModal(progId) {
+      const prog = communityProgrammesCatalog.find(p => p.id === progId);
+      if (!prog) return;
+
+      const modal = document.getElementById('phoneModal');
+      const badge = document.getElementById('phoneModalBadge');
+      const content = document.getElementById('phoneModalContent');
+
+      badge.textContent = 'Website Preview';
+      content.innerHTML = `
+        <div class="space-y-3 animate-screen">
+          <!-- Simulated Mobile Browser URL Bar -->
+          <div class="bg-gray-100 rounded-xl px-2.5 py-1.5 border border-gray-300 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <i class="fa-solid fa-lock text-emerald-600 text-[10px]"></i>
+              <span class="text-[10px] font-mono text-gray-700 truncate">${prog.url}</span>
+            </div>
+            <a href="${prog.url}" target="_blank" rel="noopener noreferrer" class="text-[10px] font-bold text-neuro-deepOrange shrink-0 hover:underline">
+              Open ↗
+            </a>
+          </div>
+
+          <!-- Simulated Programme Webpage Card -->
+          <div class="bg-white rounded-2xl border border-neuro-border shadow-sm overflow-hidden">
+            <div class="bg-neuro-blush p-3 border-b border-neuro-border space-y-0.5">
+              <div class="text-[9.5px] font-bold uppercase tracking-wider text-neuro-deepOrange">${prog.org}</div>
+              <h3 class="font-display font-extrabold text-sm text-neuro-ink leading-snug">${prog.name}</h3>
+            </div>
+            <div class="p-3 space-y-2.5 text-xs text-neuro-ink">
+              <div class="bg-neuro-canvas p-2.5 rounded-xl border border-neuro-border space-y-1 text-[11px]">
+                <div><i class="fa-solid fa-building text-neuro-orange w-4"></i> <strong>Organisation:</strong> ${prog.org}</div>
+                <div><i class="fa-solid fa-location-dot text-neuro-teal w-4"></i> <strong>Where It Is Held:</strong> ${prog.venue}</div>
+                <div><i class="fa-solid fa-calendar-check text-amber-600 w-4"></i> <strong>Schedule:</strong> ${prog.schedule}</div>
+                <div><i class="fa-solid fa-users text-neuro-deepOrange w-4"></i> <strong>Target Audience:</strong> ${prog.audience}</div>
+              </div>
+              <p class="text-[11.5px] text-neuro-muted leading-relaxed">${prog.description}</p>
+
+              <div class="pt-1 space-y-1.5">
+                <a href="${prog.url}" target="_blank" rel="noopener noreferrer"
+                   class="w-full py-2.5 rounded-xl bg-neuro-orange hover:bg-neuro-darkOrange text-white font-semibold text-xs shadow flex items-center justify-center gap-1.5 transition">
+                  <span>Open Official Website in New Tab ↗</span>
+                </a>
+                <button onclick="closePhoneModal()" class="w-full py-2 rounded-xl bg-neuro-canvas text-neuro-ink font-semibold text-[11px] border border-neuro-border">
+                  Return to Community Programmes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      modal.classList.remove('hidden');
+    }
+
+    function closePhoneModal() {
+      document.getElementById('phoneModal').classList.add('hidden');
+    }
+
+    function openOnboardingScreen() {
+      document.getElementById('onboardingOverlay').classList.remove('hidden');
+      setOnboardingSlide('guidelines');
+    }
+
+    function closeOnboardingScreen() {
+      document.getElementById('onboardingOverlay').classList.add('hidden');
+    }
+
+    function setOnboardingSlide(slide) {
+      const splash = document.getElementById('slideSplashContent');
+      const guide = document.getElementById('slideGuidelinesContent');
+      const btnSplash = document.getElementById('btnSlideSplash');
+      const btnGuide = document.getElementById('btnSlideGuidelines');
+
+      if (slide === 'splash') {
+        splash.classList.remove('hidden');
+        guide.classList.add('hidden');
+        btnSplash.className = 'px-2 py-0.5 rounded font-semibold bg-neuro-orange text-white';
+        btnGuide.className = 'px-2 py-0.5 rounded font-semibold text-neuro-muted hover:text-neuro-ink';
+      } else {
+        splash.classList.add('hidden');
+        guide.classList.remove('hidden');
+        btnGuide.className = 'px-2 py-0.5 rounded font-semibold bg-neuro-orange text-white';
+        btnSplash.className = 'px-2 py-0.5 rounded font-semibold text-neuro-muted hover:text-neuro-ink';
+      }
+    }
+
+    let toastTimer = null;
+    function showPhoneToast(title, body) {
+      const toast = document.getElementById('phoneToast');
+      document.getElementById('phoneToastTitle').textContent = title;
+      document.getElementById('phoneToastBody').textContent = body;
+      toast.classList.remove('hidden');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(hidePhoneToast, 3400);
+    }
+
+    function hidePhoneToast() {
+      document.getElementById('phoneToast').classList.add('hidden');
+    }
+
+    // -------------------------------------------------------------------------
+    // 6. SHARED 3 HEALTH METRIC CHARTS (NO BACKEND CATEGORY LABELS)
+    // -------------------------------------------------------------------------
+    function renderDailyStepsCard() {
+      const maxScale = 2300;
+      const chartH = 96;
+      const goalY = chartH - Math.round((state.goalSteps / maxScale) * chartH);
+      const stepsNeeded = Math.max(0, state.goalSteps - state.todaySteps);
+
+      const barsSvg = state.weeklySteps.map((d, i) => {
+        const barH = Math.max(8, Math.round((d.steps / maxScale) * chartH));
+        const y = chartH - barH;
+        const fill = d.isToday ? '#E07A53' : '#F2C0AC';
+        return `
+          <g transform="translate(${16 + i * 41}, 0)">
+            <rect x="0" y="${y}" width="22" height="${barH}" rx="5" fill="${fill}" />
+            <text x="11" y="${Math.max(10, y - 4)}" text-anchor="middle" font-size="8.2" font-weight="700" fill="${d.isToday ? '#D96B43' : '#68635F'}">${d.steps}</text>
+            <text x="11" y="${chartH + 12}" text-anchor="middle" font-size="8.5" font-weight="${d.isToday ? '800' : '500'}" fill="${d.isToday ? '#1E1E1E' : '#68635F'}">${d.day}</text>
+          </g>
+        `;
+      }).join('');
+
+      const footerMessage = state.role === 'patient'
+        ? `You only need <strong>${stepsNeeded.toLocaleString()} more steps</strong> today to reach your 2k goal!`
+        : `John only needs <strong>${stepsNeeded.toLocaleString()} more steps</strong> today to reach his 2k goal!`;
+
+      return `
+        <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-display font-bold text-xs sm:text-sm text-neuro-ink">Daily Steps</h3>
+              <p class="text-[10.5px] text-neuro-muted">7-day step count (Mon – Today)</p>
+            </div>
+            <span class="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full bg-neuro-blush text-neuro-deepOrange border border-neuro-orange/30">
+              Current Goal: 2k
+            </span>
+          </div>
+
+          <svg viewBox="0 0 305 114" class="w-full h-28 overflow-visible">
+            <!-- Dashed 2,000-step Target Line -->
+            <line x1="8" y1="${goalY}" x2="298" y2="${goalY}" stroke="#E07A53" stroke-width="1.4" stroke-dasharray="4 3" />
+            <rect x="220" y="${goalY - 12}" width="76" height="11" rx="3" fill="#FDF5F2" />
+            <text x="258" y="${goalY - 4}" text-anchor="middle" font-size="7.8" font-weight="700" fill="#D96B43">Goal: 2,000</text>
+
+            <!-- X-Axis -->
+            <line x1="8" y1="${chartH}" x2="298" y2="${chartH}" stroke="#E5E7EB" stroke-width="1.2" />
+            ${barsSvg}
+          </svg>
+
+          <p class="text-[11px] text-neuro-ink pt-0.5">
+            ${footerMessage}
+          </p>
+        </div>
+      `;
+    }
+
+    function renderWalkingSpeedCard() {
+      const maxSpeed = 85;
+      const chartH = 94;
+      const leftPad = 24;
+      const stepX = 19.2;
+      const purposefulY = chartH - Math.round((40 / maxSpeed) * chartH);
+
+      const points = state.hourlySpeed.map((slot, idx) => {
+        const x = leftPad + idx * stepX;
+        const y = chartH - Math.round((slot.speed / maxSpeed) * chartH);
+        return { x, y, speed: slot.speed, hour: slot.hour };
+      });
+
+      const polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
+      const areaPoints = `${points[0].x},${chartH} ${polylinePoints} ${points[points.length - 1].x},${chartH}`;
+
+      return `
+        <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-display font-bold text-xs sm:text-sm text-neuro-ink">Walking Speed Across the Day</h3>
+              <p class="text-[10.5px] text-neuro-muted">Walking speed (steps/min) from 6 AM to 8 PM</p>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-neuro-amberLight text-amber-800 border border-amber-300">
+              Peak: 70 steps/min
+            </span>
+          </div>
+
+          <svg viewBox="0 0 305 112" class="w-full h-28 overflow-visible">
+            <defs>
+              <linearGradient id="speedAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#E07A53" stop-opacity="0.28"/>
+                <stop offset="100%" stop-color="#E07A53" stop-opacity="0.02"/>
+              </linearGradient>
+            </defs>
+
+            <!-- Dashed Line for Purposeful Walking Pace (40 steps/min) -->
+            <line x1="20" y1="${purposefulY}" x2="298" y2="${purposefulY}" stroke="#2E7D6B" stroke-width="1.2" stroke-dasharray="3 3" />
+            <text x="296" y="${purposefulY - 3}" text-anchor="end" font-size="7.5" font-weight="700" fill="#2E7D6B">Purposeful Pace (40 steps/min)</text>
+            <text x="16" y="${purposefulY + 3}" text-anchor="end" font-size="7.5" fill="#2E7D6B">40</text>
+            <text x="16" y="12" text-anchor="end" font-size="7.5" fill="#9CA3AF">75</text>
+            <text x="16" y="${chartH}" text-anchor="end" font-size="7.5" fill="#9CA3AF">0</text>
+
+            <!-- Baseline -->
+            <line x1="20" y1="${chartH}" x2="298" y2="${chartH}" stroke="#E5E7EB" stroke-width="1.2" />
+
+            <!-- Area & Line -->
+            <polygon points="${areaPoints}" fill="url(#speedAreaGrad)" />
+            <polyline fill="none" stroke="#E07A53" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" points="${polylinePoints}" />
+
+            <!-- Data Nodes & Hour Labels -->
+            ${points.map((p, i) => `
+              <g>
+                <circle cx="${p.x}" cy="${p.y}" r="${p.speed === 70 ? 3.5 : 2.2}" fill="${p.speed >= 40 ? '#D96B43' : '#9CA3AF'}" />
+                ${p.speed === 70 ? `<text x="${p.x}" y="${p.y - 5}" text-anchor="middle" font-size="8" font-weight="800" fill="#D96B43">70 (8 AM)</text>` : ''}
+                ${i % 2 === 0 ? `<text x="${p.x}" y="${chartH + 11}" text-anchor="middle" font-size="7.8" fill="#68635F">${p.hour}</text>` : ''}
+              </g>
+            `).join('')}
+          </svg>
+
+          <p class="text-[11px] text-neuro-muted">
+            Tip: Add a 15-minute brisk walk (at least 40 steps/min) during your morning or evening outing.
+          </p>
+        </div>
+      `;
+    }
+
+    function renderStepsAcrossDayCard() {
+      const maxSteps = 300;
+      const chartH = 90;
+      const leftPad = 20;
+      const stepX = 19.2;
+
+      const barsSvg = state.hourlySteps.map((slot, idx) => {
+        const x = leftPad + idx * stepX;
+        const barH = slot.steps > 0 ? Math.max(5, Math.round((slot.steps / maxSteps) * chartH)) : 2;
+        const y = chartH - barH;
+        const fill = slot.quiet ? '#EF4444' : (slot.steps >= 180 ? '#E07A53' : '#2E7D6B');
+        return `
+          <g>
+            <rect x="${x - 5}" y="${y}" width="10" height="${barH}" rx="2.5" fill="${slot.steps === 0 ? '#E5E7EB' : fill}" />
+            ${idx % 2 === 0 ? `<text x="${x}" y="${chartH + 11}" text-anchor="middle" font-size="7.8" fill="${slot.quiet ? '#DC2626' : '#68635F'}">${slot.hour}</text>` : ''}
+          </g>
+        `;
+      }).join('');
+
+      return `
+        <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-display font-bold text-xs sm:text-sm text-neuro-ink">Steps Across the Day</h3>
+              <p class="text-[10.5px] text-neuro-muted">Hourly steps (6 AM – 8 PM) • Sedentary window: 1–3 PM</p>
+            </div>
+            <button onclick="toggle3pmReminder()" class="text-[9.5px] font-bold px-2 py-0.5 rounded-full border transition ${state.reminder3pmActive ? 'bg-neuro-tealLight text-neuro-teal border-neuro-teal/30' : 'bg-gray-100 text-gray-500 border-gray-300'}">
+              3:00 PM Reminder: ${state.reminder3pmActive ? 'ON' : 'OFF'}
+            </button>
+          </div>
+
+          <svg viewBox="0 0 305 106" class="w-full h-26 overflow-visible">
+            <!-- Highlight 1 PM - 3 PM Sedentary Window -->
+            <rect x="146" y="5" width="34" height="${chartH - 5}" rx="4" fill="#FEE2E2" opacity="0.6" />
+            <text x="163" y="14" text-anchor="middle" font-size="7" font-weight="700" fill="#DC2626">1–3 PM Quiet</text>
+
+            <line x1="12" y1="${chartH}" x2="298" y2="${chartH}" stroke="#E5E7EB" stroke-width="1.2" />
+            ${barsSvg}
+          </svg>
+
+          <p class="text-[11px] text-neuro-muted">
+            Consistent morning activity detected. A 3:00 PM movement reminder helps break up afternoon sitting time.
+          </p>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------------------
+    // 7. VIEW 1: PATIENT VIEW SCREENS (JOHN TAN)
+    // -------------------------------------------------------------------------
+    function renderPatientHome() {
+      const progressPct = Math.min(100, Math.round((state.todaySteps / state.goalSteps) * 100));
+      const stepsRemaining = Math.max(0, state.goalSteps - state.todaySteps);
+
+      return `
+        <div class="space-y-3 animate-screen">
+          <!-- Greeting Header -->
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="font-display font-extrabold text-base text-neuro-ink">Good morning, John</h2>
+              <p class="text-[11px] text-neuro-muted">Here is your daily activity summary</p>
+            </div>
+            <button onclick="toggleLargeTextMode()" class="px-2 py-1 rounded-lg bg-white border border-neuro-border text-[11px] font-bold text-neuro-ink shadow-sm hover:border-neuro-orange">
+              ${state.largeFont ? 'A-' : 'A+'}
+            </button>
+          </div>
+
+          <!-- Daily Steps Card -->
+          <div class="bg-neuro-blush rounded-2xl p-3.5 border border-[#F3DFD7] shadow-sm space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-[11px] font-medium text-neuro-muted">Today's Steps</span>
+                <div class="font-display font-extrabold text-2xl text-neuro-ink leading-tight">
+                  ${state.todaySteps.toLocaleString()} <span class="text-xs font-semibold text-neuro-muted">steps</span>
+                </div>
+              </div>
+              <span class="text-[10.5px] font-bold px-2.5 py-1 rounded-full bg-white text-neuro-deepOrange border border-neuro-orange/30 shadow-sm">
+                Current Goal: 2k
+              </span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full h-2.5 rounded-full bg-white/90 border border-neuro-orange/20 overflow-hidden">
+              <div class="bg-neuro-orange h-full rounded-full transition-all duration-500" style="width: ${progressPct}%"></div>
+            </div>
+
+            <p class="text-xs text-neuro-ink font-medium">
+              You only need <strong>${stepsRemaining.toLocaleString()} more steps</strong> today to reach your 2k goal!
+            </p>
+
+            <!-- Button Leading to Data Screen -->
+            <button onclick="switchTab('data')" class="w-full py-2.5 rounded-xl bg-neuro-orange hover:bg-neuro-darkOrange text-white font-semibold text-xs shadow flex items-center justify-center gap-1.5 transition">
+              <i class="fa-solid fa-chart-column"></i>
+              <span>View Your Health Metrics →</span>
+            </button>
+          </div>
+
+          <!-- Inspirational Quote Card Directly ABOVE Sarah's Encouragement Card -->
+          <div class="bg-neuro-amberLight/90 rounded-2xl p-3 border border-amber-300/70 shadow-sm space-y-1">
+            <div class="text-[9.5px] font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1">
+              <i class="fa-solid fa-sun text-amber-600"></i> Daily Inspiration
+            </div>
+            <p class="text-xs font-semibold text-neuro-ink italic leading-snug">
+              "${state.quote}"
+            </p>
+          </div>
+
+          <!-- Daughter Sarah Tan's Encouragement Card -->
+          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-neuro-ink flex items-center gap-1.5">
+                <i class="fa-solid fa-heart text-neuro-orange"></i> ${state.sarahNote.from}
+              </span>
+              <button onclick="toggleSarahHeart()" class="text-[10.5px] px-2 py-0.5 rounded-full border transition ${state.sarahHearted ? 'bg-red-50 border-red-200 text-red-600 font-bold' : 'bg-neuro-canvas border-neuro-border text-neuro-muted'}">
+                <i class="fa-solid fa-heart mr-0.5"></i> ${state.sarahHearted ? 'Thanked' : 'Send ❤️'}
+              </button>
+            </div>
+            <p class="text-xs text-neuro-ink italic leading-snug">
+              "${state.sarahNote.text}"
+            </p>
+          </div>
+
+          <!-- Recommended Actions (No bracketed notes, no category labels) -->
+          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <h3 class="font-display font-bold text-xs sm:text-sm text-neuro-ink">Recommended Actions</h3>
+              <span class="text-[10px] font-semibold text-neuro-deepOrange">Tap to check off</span>
+            </div>
+            <div class="space-y-1.5">
+              ${state.actions.map(act => `
+                <div onclick="toggleActionItem('${act.id}')"
+                     class="p-2.5 rounded-xl border transition cursor-pointer flex items-start gap-2.5 ${act.done ? 'bg-emerald-50/60 border-emerald-200' : 'bg-neuro-canvas border-neuro-border hover:border-neuro-orange'}">
+                  <i class="fa-solid ${act.done ? 'fa-circle-check text-neuro-teal' : 'fa-circle text-neuro-orange/40'} text-sm mt-0.5"></i>
+                  <span class="text-[11.5px] font-medium text-neuro-ink leading-snug ${act.done ? 'line-through opacity-70' : ''}">
+                    ${act.text}
+                  </span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Featured Story Card: Header "Hear others' stories" & Badge "Real Stories" -->
+          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <h3 class="font-display font-bold text-xs sm:text-sm text-neuro-ink">Hear others' stories</h3>
+              <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-neuro-blush text-neuro-deepOrange border border-neuro-orange/30">
+                Real Stories
+              </span>
+            </div>
+            <div onclick="switchTab('articles')" class="p-2.5 rounded-xl bg-neuro-blush/70 border border-neuro-orange/25 cursor-pointer hover:bg-neuro-peach transition space-y-1">
+              <div class="text-[10.5px] font-bold text-neuro-deepOrange">Mdm Tan, Age 74 • Toa Payoh</div>
+              <h4 class="font-display font-bold text-xs text-neuro-ink leading-snug">
+                "From Slow Morning Strolls to Brisk Kopitiam Walks: How Picking Up My Pace Cleared My Morning Fog"
+              </h4>
+              <div class="text-[10.5px] font-semibold text-neuro-orange pt-0.5">
+                Read More Real Stories →
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDataScreen() {
+      const heading = state.role === 'patient' ? 'Your Health Metrics' : "John's Health Metrics";
+      return `
+        <div class="space-y-3 animate-screen">
+          <div>
+            <h2 class="font-display font-extrabold text-base text-neuro-ink">${heading}</h2>
+            <p class="text-[11px] text-neuro-muted">Synced from Fitbit Charge 6</p>
+          </div>
+
+          ${renderDailyStepsCard()}
+          ${renderWalkingSpeedCard()}
+          ${renderStepsAcrossDayCard()}
+        </div>
+      `;
+    }
+
+    function renderArticlesScreen() {
+      const filtered = articlesCatalog.filter(a => state.articleFilter === 'all' || a.category === state.articleFilter);
+
+      return `
+        <div class="space-y-3 animate-screen">
+          <div>
+            <span class="text-[10.5px] font-bold uppercase tracking-wider text-neuro-deepOrange">
+              Real Stories &amp; Research
+            </span>
+            <h2 class="font-display font-extrabold text-base text-neuro-ink">Articles</h2>
+          </div>
+
+          <!-- Filter Pills -->
+          <div class="flex items-center gap-1.5 text-[11px]">
+            <button onclick="state.articleFilter='all'; renderPhoneApp();"
+              class="px-2.5 py-1 rounded-lg font-semibold transition ${state.articleFilter === 'all' ? 'bg-neuro-orange text-white' : 'bg-white text-neuro-muted border border-neuro-border'}">
+              All
+            </button>
+            <button onclick="state.articleFilter='lived'; renderPhoneApp();"
+              class="px-2.5 py-1 rounded-lg font-semibold transition ${state.articleFilter === 'lived' ? 'bg-neuro-orange text-white' : 'bg-white text-neuro-muted border border-neuro-border'}">
+              Real Stories
+            </button>
+            <button onclick="state.articleFilter='science'; renderPhoneApp();"
+              class="px-2.5 py-1 rounded-lg font-semibold transition ${state.articleFilter === 'science' ? 'bg-neuro-orange text-white' : 'bg-white text-neuro-muted border border-neuro-border'}">
+              Scientific Evidence
+            </button>
+          </div>
+
+          <!-- Articles Feed -->
+          <div class="space-y-2.5">
+            ${filtered.map(item => `
+              <article onclick="openArticleModal('${item.id}')"
+                       class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm hover:border-neuro-orange transition cursor-pointer space-y-1.5">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full border ${item.badgeClass}">
+                    ${item.badge}
+                  </span>
+                  <span class="text-[10px] font-medium text-neuro-muted truncate">${item.person}</span>
+                </div>
+                <h3 class="font-display font-bold text-xs text-neuro-ink leading-snug">${item.title}</h3>
+                <p class="text-[10.5px] text-neuro-deepOrange font-medium">${item.journalOrMeta}</p>
+                <p class="text-[11px] text-neuro-muted leading-snug">${item.summary}</p>
+              </article>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCommunityProgrammesScreen() {
+      return `
+        <div class="space-y-3 animate-screen">
+          <div>
+            <span class="text-[10.5px] font-bold uppercase tracking-wider text-neuro-deepOrange">
+              Singapore Active Ageing Directory
+            </span>
+            <h2 class="font-display font-extrabold text-base text-neuro-ink">Community Programmes</h2>
+          </div>
+
+          <div class="space-y-2.5">
+            ${communityProgrammesCatalog.map(prog => `
+              <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
+                <h3 class="font-display font-bold text-xs sm:text-sm text-neuro-ink leading-snug">${prog.name}</h3>
+                <div class="bg-neuro-canvas p-2 rounded-xl border border-neuro-border space-y-0.5 text-[10.5px] text-neuro-ink">
+                  <div><i class="fa-solid fa-building text-neuro-orange w-3.5"></i> <strong>Organisation:</strong> ${prog.org}</div>
+                  <div><i class="fa-solid fa-location-dot text-neuro-teal w-3.5"></i> <strong>Where It Is Held:</strong> ${prog.venue}</div>
+                  <div><i class="fa-solid fa-clock text-amber-600 w-3.5"></i> <strong>Schedule:</strong> ${prog.schedule}</div>
+                  <div><i class="fa-solid fa-users text-neuro-deepOrange w-3.5"></i> <strong>Audience:</strong> ${prog.audience}</div>
+                </div>
+                <p class="text-[11px] text-neuro-muted leading-snug">${prog.description}</p>
+                <button onclick="openProgrammeWebsiteModal('${prog.id}')"
+                        class="w-full py-2 rounded-xl bg-neuro-orange hover:bg-neuro-darkOrange text-white font-semibold text-[11px] shadow-sm flex items-center justify-center gap-1.5 transition">
+                  <i class="fa-solid fa-up-right-from-square text-[10px]"></i>
+                  <span>Visit Programme Website ↗</span>
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderProfileScreen() {
+      return `
+        <div class="space-y-3 animate-screen">
+          <!-- Patient Details Card (No "Baseline" row) -->
+          <div class="bg-neuro-blush rounded-2xl p-3.5 border border-[#F3DFD7] flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-neuro-orange text-white font-display font-extrabold text-base flex items-center justify-center shadow">
+              JT
+            </div>
+            <div class="flex-1 text-xs">
+              <div class="flex items-center justify-between">
+                <h2 class="font-display font-extrabold text-sm text-neuro-ink">John Tan</h2>
+                <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-white text-neuro-deepOrange border border-neuro-orange/30">
+                  ID #NS-2048
+                </span>
+              </div>
+              <p class="text-[11px] text-neuro-muted mt-0.5">Age 72 • Mild Cognitive Impairment</p>
+              <p class="text-[11px] font-semibold text-neuro-deepOrange mt-0.5">Current Goal: 2k steps/day</p>
+            </div>
+          </div>
+
+          <!-- Wearable Sync Card -->
+          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-neuro-tealLight text-neuro-teal flex items-center justify-center">
+                <i class="fa-solid fa-watch-fitness"></i>
+              </div>
+              <div class="text-xs">
+                <div class="font-bold text-neuro-ink">Fitbit Charge 6</div>
+                <div class="text-[10.5px] text-neuro-muted">Synced 4 mins ago • Battery 86%</div>
+              </div>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Connected
+            </span>
+          </div>
+
+          <!-- Primary Caregiver Details (No "Call Sarah" button) -->
+          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-1.5">
+            <h3 class="font-display font-bold text-xs text-neuro-ink flex items-center gap-1.5">
+              <i class="fa-solid fa-user-shield text-neuro-orange"></i> Primary Caregiver Details
+            </h3>
+            <div class="text-[11px] text-neuro-ink space-y-0.5">
+              <div><strong>Name:</strong> Sarah Tan</div>
+              <div><strong>Relationship:</strong> Daughter</div>
+              <div><strong>Contact:</strong> +65 9123 4567 • sarah.tan@email.sg</div>
+            </div>
+          </div>
+
+          <!-- Notification & Display Preferences -->
+          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
+            <h3 class="font-display font-bold text-xs text-neuro-ink">Preferences</h3>
+            <div class="flex items-center justify-between text-[11px]">
+              <span>3:00 PM Movement Reminder</span>
+              <button onclick="toggle3pmReminder()" class="px-2.5 py-1 rounded-lg font-bold ${state.reminder3pmActive ? 'bg-neuro-teal text-white' : 'bg-gray-200 text-gray-600'}">
+                ${state.reminder3pmActive ? 'Active' : 'Off'}
+              </button>
+            </div>
+            <div class="flex items-center justify-between text-[11px]">
+              <span>Text Size</span>
+              <button onclick="toggleLargeTextMode()" class="px-2.5 py-1 rounded-lg font-bold ${state.largeFont ? 'bg-neuro-orange text-white' : 'bg-gray-100 text-neuro-ink border border-neuro-border'}">
+                ${state.largeFont ? 'Large' : 'Standard'}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------------------
+    // 8. VIEW 2: CAREGIVER VIEW (SARAH TAN — REFERRING TO JOHN IN 3RD PERSON)
+    // -------------------------------------------------------------------------
+    function renderCaregiverHome() {
+      const stepsRemaining = Math.max(0, state.goalSteps - state.todaySteps);
+      const progressPct = Math.min(100, Math.round((state.todaySteps / state.goalSteps) * 100));
+
+      return `
+        <div class="space-y-3 animate-screen">
+          <!-- Caregiver Banner -->
+          <div class="bg-amber-50 rounded-2xl p-3 border border-amber-200 flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800">Caregiver View • Sarah Tan</span>
+              <h2 class="font-display font-extrabold text-sm text-neuro-ink">John's Activity Overview</h2>
+            </div>
+            <span class="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full bg-white text-neuro-deepOrange border border-neuro-orange/30">
+              Current Goal: 2k
+            </span>
+          </div>
+
+          <!-- John's Daily Steps Card (3rd Person) -->
+          <div class="bg-white rounded-2xl p-3.5 border border-neuro-border shadow-sm space-y-2.5">
+            <div class="flex items-baseline justify-between">
+              <div class="font-display font-extrabold text-base text-neuro-ink">
+                John's Daily Steps: ${state.todaySteps.toLocaleString()}
+              </div>
+              <span class="text-[10.5px] font-semibold text-neuro-deepOrange">Peak: 70 steps/min</span>
+            </div>
+
+            <div class="w-full h-2.5 rounded-full bg-neuro-blush overflow-hidden">
+              <div class="bg-neuro-orange h-full rounded-full" style="width: ${progressPct}%"></div>
+            </div>
+
+            <p class="text-[11.5px] text-neuro-ink">
+              John only needs <strong>${stepsRemaining.toLocaleString()} more steps</strong> today to reach his 2k goal!
+            </p>
+
+            <button onclick="switchTab('data')" class="w-full py-2.5 rounded-xl bg-neuro-orange text-white font-semibold text-xs shadow flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-chart-simple"></i>
+              <span>View John's Health Metrics →</span>
+            </button>
+          </div>
+
+          <!-- Daily Inspiration Quote Directly ABOVE Caregiver Encouragement Box -->
+          <div class="bg-neuro-amberLight/90 rounded-2xl p-3 border border-amber-300/70 shadow-sm space-y-1">
+            <div class="text-[9.5px] font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1">
+              <i class="fa-solid fa-sun text-amber-600"></i> Daily Inspiration
+            </div>
+            <p class="text-xs font-semibold text-neuro-ink italic leading-snug">
+              "${state.quote}"
+            </p>
+          </div>
+
+          <!-- What the Caregiver Can Do to Encourage John -->
+          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
+            <h3 class="font-display font-bold text-xs sm:text-sm text-neuro-ink">How You Can Encourage John Today</h3>
+            <div class="space-y-1.5 text-[11px] text-neuro-ink">
+              <div class="p-2 rounded-xl bg-neuro-canvas border border-neuro-border">
+                <strong>Walk together after dinner:</strong> Invite John for a 15-minute brisk walk to help him complete his remaining 880 steps at a purposeful pace.
+              </div>
+              <div class="p-2 rounded-xl bg-neuro-canvas border border-neuro-border">
+                <strong>Afternoon check-in at 3:00 PM:</strong> Remind John to take a short 5-minute walk around the block during his 1–3 PM quiet window.
+              </div>
+            </div>
+            <button onclick="sendCaregiverEncouragement('Great job this morning Dad! Let’s take a 15-minute brisk walk together after dinner!')"
+                    class="w-full py-2 rounded-xl bg-neuro-blush hover:bg-neuro-peach text-neuro-deepOrange text-[11px] font-bold border border-neuro-orange/30 transition">
+              <i class="fa-solid fa-paper-plane mr-1"></i>Send Encouragement Note to John
+            </button>
+          </div>
+
+          <!-- John's Recommended Actions -->
+          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-1.5">
+            <h3 class="font-display font-bold text-xs text-neuro-ink">John's Recommended Actions</h3>
+            ${state.actions.map(act => `
+              <div class="p-2 rounded-xl bg-neuro-canvas border border-neuro-border flex items-start gap-2 text-[11px]">
+                <i class="fa-solid ${act.done ? 'fa-circle-check text-neuro-teal' : 'fa-circle-dot text-neuro-orange'} mt-0.5"></i>
+                <span class="${act.done ? 'line-through text-neuro-muted' : 'text-neuro-ink'}">${act.text}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- Hear others' stories -->
+          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-display font-bold text-neuro-ink">Hear others' stories</span>
+              <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-neuro-blush text-neuro-deepOrange border border-neuro-orange/30">
+                Real Stories
+              </span>
+            </div>
+            <div onclick="switchTab('articles')" class="p-2.5 rounded-xl bg-neuro-blush/70 border border-neuro-orange/25 cursor-pointer space-y-0.5">
+              <div class="text-[10.5px] font-bold text-neuro-deepOrange">Mdm Tan, Age 74</div>
+              <div class="text-xs font-bold text-neuro-ink leading-snug">
+                "From Slow Morning Strolls to Brisk Kopitiam Walks: How Picking Up My Pace Cleared My Morning Fog"
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. VIEW 3: COMMUNITY CARE PARTNER VIEW (DATA + RECOMMENDED INTERVENTIONS)
+    // -------------------------------------------------------------------------
+    function renderCommunityCarePartnerView() {
+      return `
+        <div class="space-y-3 animate-screen">
+          <!-- Streamlined Patient Header (No "(Clinical)" label, no Clinical Findings) -->
+          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-neuro-teal">Activity &amp; Intervention Summary</span>
+              <h2 class="font-display font-extrabold text-sm text-neuro-ink mt-0.5">John Tan • ID #NS-2048</h2>
+              <p class="text-[11px] text-neuro-muted">Age 72 • MCI • Avg Daily Steps: 1,000</p>
+            </div>
+            <span class="text-[10.5px] font-bold px-2.5 py-1 rounded-full bg-neuro-blush text-neuro-deepOrange border border-neuro-orange/30">
+              Current Goal: 2k
+            </span>
+          </div>
+
+          <!-- The 3 Health Metric Charts -->
+          ${renderDailyStepsCard()}
+          ${renderWalkingSpeedCard()}
+          ${renderStepsAcrossDayCard()}
+
+          <!-- Strictly What Was Recommended to the Patient -->
+          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
+            <h3 class="font-display font-bold text-xs sm:text-sm text-neuro-ink">
+              Recommended Interventions for Patient
+            </h3>
+            <div class="space-y-2 text-[11px] text-neuro-ink">
+              <div class="p-2.5 rounded-xl bg-neuro-canvas border border-neuro-border space-y-0.5">
+                <div class="font-bold text-neuro-ink">1. Progressive Daily Step Target (2,000 steps/day)</div>
+                <p class="text-neuro-muted leading-snug">
+                  Set daily step target at 2,000 steps/day (+1,000 steps above 1,000-step baseline) and progress gradually toward 7,000–8,000 daily steps.
+                </p>
+              </div>
+              <div class="p-2.5 rounded-xl bg-neuro-canvas border border-neuro-border space-y-0.5">
+                <div class="font-bold text-neuro-ink">2. Daily Brisk Walking (15–30 mins at &ge;40 steps/min)</div>
+                <p class="text-neuro-muted leading-snug">
+                  Introduce 15–30 minutes of purposeful brisk walking (&ge;40 steps/min) each day to increase walking speed and peak 30-minute cadence.
+                </p>
+              </div>
+              <div class="p-2.5 rounded-xl bg-neuro-canvas border border-neuro-border space-y-0.5">
+                <div class="font-bold text-neuro-ink">3. Afternoon 3:00 PM Movement Prompt</div>
+                <p class="text-neuro-muted leading-snug">
+                  Maintain consistent daily step counts across consecutive days and prompt a 5-minute walk at 3:00 PM to break up the 1:00–3:00 PM sedentary window.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------------------
+    // 10. BOTTOM NAVIGATION & MASTER RENDERER
+    // -------------------------------------------------------------------------
+    function renderBottomNav() {
+      const nav = document.getElementById('phoneBottomNav');
+
+      if (state.role === 'partner') {
+        nav.innerHTML = `
+          <div class="py-1 px-3 text-[11px] font-bold text-neuro-teal flex items-center gap-1.5">
+            <i class="fa-solid fa-chart-column"></i>
+            <span>Activity &amp; Intervention Summary</span>
+          </div>
+        `;
+        return;
+      }
+
+      const tabs = [
+        { id: 'home',       icon: 'fa-house',            label: 'Home' },
+        { id: 'data',       icon: 'fa-chart-simple',     label: 'Data' },
+        { id: 'articles',   icon: 'fa-book-open-reader', label: 'Articles' },
+        { id: 'programmes', icon: 'fa-people-group',     label: 'Programmes' },
+        { id: 'profile',    icon: 'fa-user',             label: 'Profile' }
+      ];
+
+      nav.innerHTML = tabs.map(t => {
+        const isActive = state.tab === t.id;
+        return `
+          <button onclick="switchTab('${t.id}')"
+                  class="flex flex-col items-center py-0.5 px-2 rounded-xl transition ${isActive ? 'text-neuro-orange font-bold' : 'text-neuro-muted hover:text-neuro-ink'}">
+            <i class="fa-solid ${t.icon} text-[13px]"></i>
+            <span class="text-[9.5px] mt-0.5">${t.label}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderPhoneApp() {
+      const container = document.getElementById('phoneScreenContent');
+      renderBottomNav();
+
+      if (state.role === 'partner') {
+        container.innerHTML = renderCommunityCarePartnerView();
+        return;
+      }
+
+      if (state.role === 'caregiver') {
+        if (state.tab === 'home') container.innerHTML = renderCaregiverHome();
+        else if (state.tab === 'data') container.innerHTML = renderDataScreen();
+        else if (state.tab === 'articles') container.innerHTML = renderArticlesScreen();
+        else if (state.tab === 'programmes') container.innerHTML = renderCommunityProgrammesScreen();
+        else container.innerHTML = renderProfileScreen();
+        return;
+      }
+
+      // Patient View
+      if (state.tab === 'home') container.innerHTML = renderPatientHome();
+      else if (state.tab === 'data') container.innerHTML = renderDataScreen();
+      else if (state.tab === 'articles') container.innerHTML = renderArticlesScreen();
+      else if (state.tab === 'programmes') container.innerHTML = renderCommunityProgrammesScreen();
+      else container.innerHTML = renderProfileScreen();
+    }
+
+    window.onload = function () {
+      updateRoleHeaderButtons();
+      renderPhoneApp();
+    };
+  </script>
+</body>
+</html>
