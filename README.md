@@ -1,1 +1,1 @@
-# neurosensing.prototype.github.io
+# Neurosensing Prototype
