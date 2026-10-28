@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>NeuroSenSing Prototype — John Tan</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -62,8 +61,8 @@
 
     /* Mobile Phone Frame Sized to Fit Desktop Viewport Without Scrolling */
     .phone-frame {
-      width: 365px;
-      height: calc(100vh - 64px);
+      width: 380px;
+      height: calc(100vh - 62px);
       max-height: 760px;
       min-height: 520px;
       border-radius: 38px;
@@ -87,6 +86,12 @@
     .phone-scroll::-webkit-scrollbar-thumb {
       background: rgba(224, 122, 83, 0.32);
       border-radius: 9999px;
+    }
+
+    /* Attention Banner Style on Community Care Partner Cards */
+    .attention-banner {
+      background: linear-gradient(90deg, #DC2626 0%, #B91C1C 100%);
+      color: #FFFFFF;
     }
 
     /* Screen Transitions */
@@ -341,20 +346,24 @@
   <!-- ===================================================================== -->
   <script>
     // -------------------------------------------------------------------------
-    // 1. STATE FOR PERSONA: JOHN TAN (AGE 72, MCI)
+    // 1. STATE FOR PERSONA: JOHN TAN (AGE 72, MCI, QUEENSTOWN) & APP VIEWS
     // -------------------------------------------------------------------------
     const state = {
-      role: 'patient',          // 'patient' | 'caregiver' | 'partner'
-      tab: 'home',              // 'home' | 'data' | 'articles' | 'programmes' | 'profile'
-      articleFilter: 'all',     // 'all' | 'lived' | 'science'
+      role: 'patient',                 // 'patient' | 'caregiver' | 'partner'
+      tab: 'home',                     // 'home' | 'data' | 'articles' | 'programmes' | 'profile'
+      articleFilter: 'all',            // Patient: 'all' | 'lived' | 'science'
+      caregiverArticleFilter: 'all',   // Caregiver: 'all' | 'care' | 'mental'
+      programmeFilter: 'nearest',      // 'nearest' | 'short' | 'home' | 'all'
+      partnerFilter: 'all',            // 'all' | 'attention' | 'ontrack'
+      selectedPartnerPatientId: null,  // null (Dashboard) or patient ID string
       largeFont: false,
       reminder3pmActive: true,
       sarahHearted: false,
 
       // John Tan's Daily Metrics
       todaySteps: 1120,
-      goalSteps: 2000,          // Displayed as "Current Goal: 2k"
-      peakSpeed: 70,            // 70 steps/min at 8 AM
+      goalSteps: 2000,                 // Displayed as "Current Goal: 2k"
+      peakSpeed: 70,                   // 70 steps/min at 8 AM
 
       // 7-Day Step Count (Mon - Today: 1,120)
       weeklySteps: [
@@ -405,14 +414,14 @@
         { hour: '8p',  steps: 0,   quiet: false }
       ],
 
-      // Daily Inspiration Quote (Placed directly ABOVE Sarah's encouragement card)
+      // Daily Inspiration Quote (Patient Home ONLY)
       quote: "Every step forward, no matter how small, is a step toward a stronger mind and brighter day.",
 
       // Daughter Sarah Tan's Encouragement Note
       sarahNote: {
         from: "Sarah Tan (Daughter)",
         time: "Today, 8:15 AM",
-        text: "Good morning Dad! You are doing so well this week. Let's take a brisk 15-minute walk around the park together after dinner!"
+        text: "Good morning Dad! You are doing so well this week. Let's take a brisk 15-minute walk around Dawson Park together after dinner!"
       },
 
       // Recommended Actions (No bracketed baseline notes, no category labels)
@@ -436,10 +445,9 @@
     };
 
     // -------------------------------------------------------------------------
-    // 2. ARTICLES CATALOG (3 REAL STORIES + 9 PUBLISHED SCIENTIFIC PAPERS)
+    // 2. PATIENT ARTICLES CATALOG (3 REAL STORIES + 9 PUBLISHED PAPERS)
     // -------------------------------------------------------------------------
     const articlesCatalog = [
-      // REAL STORIES
       {
         id: 'story-tan',
         category: 'lived',
@@ -447,15 +455,15 @@
         badgeClass: 'bg-neuro-blush text-neuro-deepOrange border-neuro-orange/30',
         person: 'Mdm Tan, Age 74',
         title: 'From Slow Morning Strolls to Brisk Kopitiam Walks: How Picking Up My Pace Cleared My Morning Fog',
-        journalOrMeta: 'Real Stories • Toa Payoh Resident',
+        journalOrMeta: 'Real Stories • Queenstown Resident',
         summary: 'Starting from 1,100 daily steps, Mdm Tan added a 15-minute brisk walk each morning and noticed sharper recall of daily errands and brighter energy.',
         fullText: `
           <div class="bg-neuro-blush p-3 rounded-xl border border-neuro-orange/25 text-xs text-neuro-ink space-y-1">
-            <div class="font-bold text-neuro-deepOrange">Mdm Tan, Age 74 (Toa Payoh)</div>
+            <div class="font-bold text-neuro-deepOrange">Mdm Tan, Age 74 (Queenstown)</div>
             <p class="italic">"I used to shuffle slowly to the market. Walking briskly for just 15 minutes every morning made my mind feel awake for the whole day."</p>
           </div>
           <p class="text-xs text-neuro-ink leading-relaxed">
-            Mdm Tan started with a simple 2,000-step daily target and practiced walking at a purposeful brisk pace on her way to the kopitiam each morning. Over four months, she built up to 3,400 steps a day and felt much more confident remembering names and appointments.
+            Mdm Tan started with a simple 2,000-step daily target and practiced walking at a purposeful brisk pace on her way to Mei Ling Market each morning. Over four months, she built up to 3,400 steps a day and felt much more confident remembering names and appointments.
           </p>
         `
       },
@@ -497,8 +505,6 @@
           </p>
         `
       },
-
-      // SCIENTIFIC EVIDENCE (9 REAL PUBLISHED TITLES FROM THE LITERATURE REVIEW)
       {
         id: 'sci-1',
         category: 'science',
@@ -664,95 +670,247 @@
     ];
 
     // -------------------------------------------------------------------------
-    // 3. SINGAPORE COMMUNITY PROGRAMMES CATALOG (10 PROGRAMMES FROM PDF)
+    // 3. CAREGIVER SOURCED ARTICLES (PROVIDING CARE TIPS & MENTAL HEALTH)
+    // -------------------------------------------------------------------------
+    const caregiverArticlesCatalog = [
+      {
+        id: 'cg-1',
+        category: 'care',
+        badge: 'Providing Care Tips',
+        badgeClass: 'bg-neuro-blush text-neuro-deepOrange border-neuro-orange/30',
+        source: 'HealthXchange.sg • SingHealth',
+        title: 'Dementia Caregiver Tips: How to Provide the Best Care (Do\'s & Don\'ts)',
+        url: 'https://www.healthxchange.sg/how-to-manage/dementia/dementia-caregiver-dos-donts',
+        summary: 'Practical Do\'s and Don\'ts from SingHealth specialists on keeping daily routines predictable, encouraging safe independence, and avoiding confrontation.',
+        fullText: `
+          <div class="bg-neuro-blush p-3 rounded-xl border border-neuro-orange/25 text-xs text-neuro-ink space-y-1">
+            <div class="font-bold text-neuro-deepOrange">Source: HealthXchange.sg (SingHealth)</div>
+            <div class="text-[10.5px] text-neuro-muted">https://www.healthxchange.sg/how-to-manage/dementia/dementia-caregiver-dos-donts</div>
+          </div>
+          <div class="space-y-2 text-xs text-neuro-ink leading-relaxed">
+            <p><strong>Caregiver Do's:</strong></p>
+            <ul class="list-disc pl-4 space-y-1">
+              <li><strong>Maintain a consistent daily routine:</strong> Fixed times for morning walks, meals, and rest reduce confusion and anxiety.</li>
+              <li><strong>Encourage independence where safe:</strong> Let your loved one set the pace on walks and perform familiar daily steps.</li>
+              <li><strong>Use simple, reassuring cues:</strong> Give one clear invitation at a time (e.g., "Let's take a 15-minute walk around Dawson Park").</li>
+            </ul>
+            <p><strong>Caregiver Don'ts:</strong></p>
+            <ul class="list-disc pl-4 space-y-1">
+              <li><strong>Don't argue or quiz harshly:</strong> If they forget an appointment or repeat a question, respond calmly and redirect gently.</li>
+              <li><strong>Don't rush transitions:</strong> Allow extra time to put on shoes and get ready for outdoor activity.</li>
+            </ul>
+          </div>
+        `
+      },
+      {
+        id: 'cg-2',
+        category: 'care',
+        badge: 'Providing Care Tips',
+        badgeClass: 'bg-neuro-blush text-neuro-deepOrange border-neuro-orange/30',
+        source: 'HealthXchange.sg • National Neuroscience Institute (NNI)',
+        title: '8 Easy Tips for Communicating with Persons with MCI & Early Dementia',
+        url: 'https://www.healthxchange.sg/seniors/ageing-concerns/communicating-person-dementia-easy-tips',
+        summary: 'Maintain eye contact, speak at a calm measured pace, use short sentences, and validate feelings before offering activity prompts.',
+        fullText: `
+          <div class="bg-neuro-blush p-3 rounded-xl border border-neuro-orange/25 text-xs text-neuro-ink space-y-1">
+            <div class="font-bold text-neuro-deepOrange">Source: HealthXchange.sg / NNI</div>
+            <p>Effective, warm communication turns daily exercise prompts into positive shared moments rather than chores.</p>
+          </div>
+          <ul class="list-disc pl-4 space-y-1.5 text-xs text-neuro-ink leading-relaxed">
+            <li>Eliminate background TV/radio noise before speaking.</li>
+            <li>Offer binary choices ("Would you like to walk to Mei Ling Market or Dawson Park?") rather than open-ended questions.</li>
+            <li>Focus on shared enjoyment—such as getting kopi after a brisk 15-minute walk.</li>
+          </ul>
+        `
+      },
+      {
+        id: 'cg-3',
+        category: 'care',
+        badge: 'Providing Care Tips',
+        badgeClass: 'bg-neuro-blush text-neuro-deepOrange border-neuro-orange/30',
+        source: 'HealthXchange.sg • SingHealth Community Care',
+        title: '5 Practical Tips for Caregivers Supporting Daily Mobility & Brisk Walking',
+        url: 'https://www.healthxchange.sg/seniors/caregiver-tips/five-tips-dementia-caregivers',
+        summary: 'How to pace-partner with your parent during evening walks to naturally lift their stepping cadence above 40 steps/min.',
+        fullText: `
+          <div class="bg-neuro-blush p-3 rounded-xl border border-neuro-orange/25 text-xs text-neuro-ink">
+            <strong>Pace-Partnering Tip for Sarah:</strong> Walking side-by-side naturally helps seniors match a brisker rhythm (40–70+ steps/min) while feeling steady and supported.
+          </div>
+          <p class="text-xs text-neuro-ink leading-relaxed">
+            Ensure supportive non-slip footwear, choose well-lit level park connectors around Queenstown, and break daily step goals into a morning market stroll and an after-dinner walk.
+          </p>
+        `
+      },
+      {
+        id: 'cg-4',
+        category: 'mental',
+        badge: 'Caregiver Mental Health',
+        badgeClass: 'bg-neuro-tealLight text-neuro-teal border-neuro-teal/30',
+        source: 'HealthHub Singapore • MindSG',
+        title: 'Caregiver Mental Health: Handle Your Feelings with Care & Prevent Burnout',
+        url: 'https://www.healthhub.sg/well-being-and-lifestyle/mental-wellness/handle-your-feelings-with-care',
+        summary: 'Recognising early signs of caregiver fatigue, letting go of caregiver guilt, and scheduling regular respite breaks.',
+        fullText: `
+          <div class="bg-neuro-tealLight p-3 rounded-xl border border-neuro-teal/30 text-xs text-neuro-ink space-y-1">
+            <div class="font-bold text-neuro-teal">Source: HealthHub Singapore</div>
+            <p>Caring for a parent with Mild Cognitive Impairment is a marathon, not a sprint—your emotional well-being matters just as much as John's.</p>
+          </div>
+          <ul class="list-disc pl-4 space-y-1.5 text-xs text-neuro-ink leading-relaxed">
+            <li><strong>Acknowledge mixed emotions:</strong> Feeling tired or frustrated at times is normal and does not make you a bad caregiver.</li>
+            <li><strong>Share the care load:</strong> Enrol your loved one in twice-weekly Active Ageing Centre sessions (such as HAPPY or Gym Tonic in Queenstown) so you have protected personal recharge time.</li>
+          </ul>
+        `
+      },
+      {
+        id: 'cg-5',
+        category: 'mental',
+        badge: 'Caregiver Mental Health',
+        badgeClass: 'bg-neuro-tealLight text-neuro-teal border-neuro-teal/30',
+        source: 'MindSG • Health Promotion Board',
+        title: 'Looking After Your Own Well-Being Whilst Caregiving',
+        url: 'https://www.healthhub.sg/programmes/mindsg/caring-for-others/looking-after-your-own-well-being-whilst-caregiving',
+        summary: 'Simple daily micro-breaks, sleep hygiene for family caregivers, and staying connected with friends and support networks.',
+        fullText: `
+          <div class="bg-neuro-tealLight p-3 rounded-xl border border-neuro-teal/30 text-xs text-neuro-ink">
+            <strong>MindSG Self-Care Checklist:</strong> Take 15 minutes of quiet breathing or stretching each day, maintain your own health screenings, and celebrate small weekly wins.
+          </div>
+        `
+      },
+      {
+        id: 'cg-6',
+        category: 'mental',
+        badge: 'Caregiver Mental Health',
+        badgeClass: 'bg-neuro-tealLight text-neuro-teal border-neuro-teal/30',
+        source: 'Dementia Singapore • Caregiver Support Services',
+        title: 'Four Ways to Avoid Caregiver Burnout & Where to Find Support in Singapore',
+        url: 'https://dementia.org.sg/caregiver-support/',
+        summary: 'Connecting with CREST-Caregiver teams in Queenstown, caregiver support groups, and the Dementia Helpline (6377 0700).',
+        fullText: `
+          <div class="bg-neuro-tealLight p-3 rounded-xl border border-neuro-teal/30 text-xs text-neuro-ink space-y-1">
+            <div class="font-bold text-neuro-teal">Dementia Singapore Helpline: 6377 0700</div>
+            <p>Join monthly caregiver peer-support circles in Queenstown/Tiong Bahru to exchange practical encouragement with other families.</p>
+          </div>
+        `
+      }
+    ];
+
+    // -------------------------------------------------------------------------
+    // 4. SINGAPORE COMMUNITY PROGRAMMES NEAR QUEENSTOWN (WITH PROXIMITY FILTER)
     // -------------------------------------------------------------------------
     const communityProgrammesCatalog = [
-      {
-        id: 'prog-1',
-        name: 'ENLIVEN (CIP 2.0)',
-        org: 'Yong-en Care Centre',
-        venue: 'Chinatown / Kreta Ayer Community Hub',
-        schedule: '7 weeks, twice weekly, 3-hour group sessions',
-        audience: 'Seniors with mild to moderate cognitive concerns',
-        description: 'Physical, cognitive, and social group activities featuring a dedicated "Build Strength" strand focused on movement and mobility.',
-        url: 'https://www.yong-en.org.sg/wp-content/uploads/2025/06/ENLIVEN-CIP2.0-By-Yong-en-Care-Centre_June2025.pdf'
-      },
-      {
-        id: 'prog-2',
-        name: 'Fun with Friends Plus',
-        org: 'NTUC Health',
-        venue: 'NTUC Health Active Ageing Centres & Care Centres Islandwide',
-        schedule: '33 weeks (twice weekly for first 7 weeks, weekly for next 26 weeks; 40 sessions)',
-        audience: 'Seniors with mild to moderate cognitive decline',
-        description: 'Combines physical exercise, art and music activities, cognitive stimulation, and cooking/baking in a social group setting.',
-        url: 'https://ntuchealth.sg/elderly-care/services/flexible-care/fun-with-friends'
-      },
-      {
-        id: 'prog-3',
-        name: 'Move It Feel Strong',
-        org: 'Health Promotion Board (HPB)',
-        venue: 'Neighbourhood Community Clubs & Residents\' Network Centres across Singapore',
-        schedule: 'Weekly neighbourhood sessions',
-        audience: 'Seniors who can walk independently or with walking aid',
-        description: 'Neighbourhood sessions teaching strength, balance, and flexibility exercises to grow stronger and reduce risk of falling, joint pain, and stiffness.',
-        url: 'https://www.healthhub.sg/well-being-and-lifestyle/active-ageing/move-it-feel-strong'
-      },
-      {
-        id: 'prog-4',
-        name: 'Steady Lah',
-        org: 'Health Promotion Board (HPB)',
-        venue: 'Community Hubs & Active Ageing Centres across Singapore',
-        schedule: 'Weekly for 12 weeks',
-        audience: 'Seniors with early signs of frailty',
-        description: 'Improves physical function with a focus on muscle strength and nutrition, combining progressive strengthening exercises, workshops, and home routines.',
-        url: 'https://www.healthhub.sg'
-      },
-      {
-        id: 'prog-5',
-        name: 'Gym Tonic',
-        org: 'Lien Foundation / Lions Befrienders & AACs',
-        venue: '30+ Community Sites & Active Ageing Centres across Singapore',
-        schedule: '30-min sessions twice weekly (12-week, 24-session programme)',
-        audience: 'Ambulant seniors aged 60 and above',
-        description: 'Customised strength training regime on software-enabled, senior-friendly pneumatic gym machines with an average 20% strength increase after 3 months.',
-        url: 'https://www.gymtonic.sg/'
-      },
       {
         id: 'prog-6',
         name: 'HAPPY (Healthy Ageing Promotion Programme For You)',
         org: 'Health Promotion Board (HPB) / AIC',
-        venue: 'Active Ageing Centres & Community Void Decks Islandwide',
-        schedule: '60 minutes, once or twice weekly',
+        venue: 'FaithActs Active Ageing Centre @ Mei Ling Street (Blk 158 Mei Ling St, Queenstown)',
+        distanceKm: 0.6,
+        distanceLabel: '0.6 km from Queenstown home',
+        proximityGroup: 'nearest',
+        schedule: '60 minutes, twice weekly (Tue & Fri, 9:30 AM)',
         audience: 'Seniors showing early signs of frailty or memory decline',
         description: 'Community-based dual-task programme combining physical exercises with cognitive tasks—such as marching in place while counting backwards—to strengthen body and mind.',
         url: 'https://www.aic.sg'
       },
       {
+        id: 'prog-3',
+        name: 'Move It Feel Strong',
+        org: 'Health Promotion Board (HPB)',
+        venue: 'Queenstown Community Centre (365 Commonwealth Ave)',
+        distanceKm: 0.8,
+        distanceLabel: '0.8 km from Queenstown home',
+        proximityGroup: 'nearest',
+        schedule: 'Weekly neighbourhood sessions (Wed, 9:00 AM)',
+        audience: 'Seniors who can walk independently or with walking aid',
+        description: 'Neighbourhood sessions teaching strength, balance, and flexibility exercises to grow stronger and reduce risk of falling, joint pain, and stiffness.',
+        url: 'https://www.healthhub.sg/well-being-and-lifestyle/active-ageing/move-it-feel-strong'
+      },
+      {
         id: 'prog-7',
         name: 'Combat Age-Related Loss of Muscle (CALM) 1.0',
         org: 'ActiveSG',
-        venue: 'Active Health Labs at SportSG ActiveSG Centres Islandwide',
+        venue: 'Active Health Lab @ Queenstown ActiveSG Sport Centre (473 Stirling Rd)',
+        distanceKm: 0.9,
+        distanceLabel: '0.9 km from Queenstown home',
+        proximityGroup: 'nearest',
         schedule: '8 weeks, 1 session per week for 60 minutes',
         audience: 'Individuals aged 60 and above',
         description: 'Active Health programme helping seniors understand muscle health through functional assessment, guided strength training, and health coaching.',
         url: 'https://www.activesgcircle.gov.sg'
       },
       {
+        id: 'prog-5',
+        name: 'Gym Tonic',
+        org: 'Lien Foundation / Lions Befrienders AAC',
+        venue: 'Lions Befrienders Active Ageing Centre @ Mei Ling St (Blk 150 Mei Ling St, Queenstown)',
+        distanceKm: 1.1,
+        distanceLabel: '1.1 km from Queenstown home',
+        proximityGroup: 'nearest',
+        schedule: '30-min sessions twice weekly (12-week, 24-session programme)',
+        audience: 'Ambulant seniors aged 60 and above',
+        description: 'Customised strength training regime on software-enabled, senior-friendly pneumatic gym machines with an average 20% strength increase after 3 months.',
+        url: 'https://www.gymtonic.sg/'
+      },
+      {
+        id: 'prog-4',
+        name: 'Steady Lah',
+        org: 'Health Promotion Board (HPB)',
+        venue: 'Leng Kee Community Club (400 Lengkok Bahru, Redhill / Queenstown)',
+        distanceKm: 1.5,
+        distanceLabel: '1.5 km from Queenstown home',
+        proximityGroup: 'nearest',
+        schedule: 'Weekly for 12 weeks (Thu, 10:00 AM)',
+        audience: 'Seniors with early signs of frailty',
+        description: 'Improves physical function with a focus on muscle strength and nutrition, combining progressive strengthening exercises, workshops, and home routines.',
+        url: 'https://www.healthhub.sg'
+      },
+      {
+        id: 'prog-2',
+        name: 'Fun with Friends Plus',
+        org: 'NTUC Health',
+        venue: 'NTUC Health Active Ageing Centre @ Bukit Merah View (Blk 117 Bukit Merah View)',
+        distanceKm: 2.8,
+        distanceLabel: '2.8 km (Short bus/MRT ride)',
+        proximityGroup: 'short',
+        schedule: '33 weeks (twice weekly for first 7 weeks, weekly for next 26 weeks; 40 sessions)',
+        audience: 'Seniors with mild to moderate cognitive decline',
+        description: 'Combines physical exercise, art and music activities, cognitive stimulation, and cooking/baking in a social group setting.',
+        url: 'https://ntuchealth.sg/elderly-care/services/flexible-care/fun-with-friends'
+      },
+      {
         id: 'prog-8',
         name: 'Active Silvers Functional Fitness Program',
         org: 'Active Silvers',
-        venue: 'Community Group Venues & Virtual Home Sessions',
+        venue: 'Tiong Bahru Community Hub & Virtual Home Sessions',
+        distanceKm: 3.4,
+        distanceLabel: '3.4 km (Short ride / Virtual option)',
+        proximityGroup: 'short',
         schedule: 'Physical: Once a week | Virtual: Variable',
         audience: 'Seniors showing signs of frailty',
         description: 'Tailored fitness programme enhancing strength, mobility, and balance through exercise prescriptions to help seniors stay active and reduce fall risk.',
         url: 'https://www.activesilvers.com.sg'
       },
       {
+        id: 'prog-1',
+        name: 'ENLIVEN (CIP 2.0)',
+        org: 'Yong-en Care Centre',
+        venue: 'Chinatown / Kreta Ayer Community Hub (335A Smith St)',
+        distanceKm: 5.1,
+        distanceLabel: '5.1 km (Direct East-West / TEL MRT)',
+        proximityGroup: 'short',
+        schedule: '7 weeks, twice weekly, 3-hour group sessions',
+        audience: 'Seniors with mild to moderate cognitive concerns',
+        description: 'Physical, cognitive, and social group activities featuring a dedicated "Build Strength" strand focused on movement and mobility.',
+        url: 'https://www.yong-en.org.sg/wp-content/uploads/2025/06/ENLIVEN-CIP2.0-By-Yong-en-Care-Centre_June2025.pdf'
+      },
+      {
         id: 'prog-9',
         name: 'Home Exercises for Healthy Bones',
         org: 'Singapore General Hospital (SGH)',
-        venue: 'At Home / Online Public Physiotherapy Portal',
-        schedule: 'Open for daily self-paced use',
+        venue: 'At Home (Queenstown) / Online Public Physiotherapy Portal',
+        distanceKm: 0,
+        distanceLabel: 'At Home • Online Self-Paced',
+        proximityGroup: 'home',
+        schedule: 'Open for daily self-paced use at home',
         audience: 'All seniors',
         description: 'Free online physiotherapy materials with safe, easy-to-follow at-home exercises for seniors.',
         url: 'https://www.sgh.com.sg'
@@ -761,7 +919,10 @@
         id: 'prog-10',
         name: 'Age Strong (Healthy 365 App)',
         org: 'Health Promotion Board (HPB)',
-        venue: 'Healthy 365 Mobile App (At Home / Neighbourhood)',
+        venue: 'Healthy 365 Mobile App (At Home in Queenstown)',
+        distanceKm: 0,
+        distanceLabel: 'At Home • Healthy 365 App',
+        proximityGroup: 'home',
         schedule: '12-week holistic digital programme (1 daily task; 20–25 min SBF workouts)',
         audience: 'Seniors aged 50+ (with optional caregiver support)',
         description: 'Empowering 12-week digital health programme with bite-sized daily quizzes and customised 20–25 minute Strength, Balance and Flexibility (SBF) workouts.',
@@ -770,7 +931,278 @@
     ];
 
     // -------------------------------------------------------------------------
-    // 4. ROLE & TAB NAVIGATION CONTROLLERS
+    // 5. COMMUNITY CARE PARTNER COHORT DATA (4 QUEENSTOWN SENIORS)
+    // -------------------------------------------------------------------------
+    const PARTNER_PATIENTS = [
+      {
+        id: 'lim-mei-ling',
+        name: 'Mdm Lim Mei Ling',
+        initials: 'ML',
+        code: '#NS-2019',
+        age: 76,
+        condition: 'MCI',
+        block: 'Blk 42 Margaret Drive, Queenstown',
+        status: 'attention',
+        attentionType: 'steps',
+        attentionTitle: 'ATTENTION: Last 7 Days Low Steps',
+        attentionDetail: '7-day average dropped to 940 steps/day (-48% below her 1,800-step baseline).',
+        todaySteps: 860,
+        avg7DaySteps: 940,
+        baselineSteps: 1800,
+        goalSteps: 2000,
+        peakSpeed: 54,
+        lastSleepHrs: 6.6,
+        baselineSleepHrs: 6.8,
+        sleepEfficiency: '84%',
+        restingHR: 72,
+        peakHR: 98,
+        weeklySteps: [
+          { day: 'Mon', steps: 1020, isToday: false },
+          { day: 'Tue', steps: 980,  isToday: false },
+          { day: 'Wed', steps: 920,  isToday: false },
+          { day: 'Thu', steps: 950,  isToday: false },
+          { day: 'Fri', steps: 890,  isToday: false },
+          { day: 'Sat', steps: 960,  isToday: false },
+          { day: 'Today', steps: 860, isToday: true }
+        ],
+        hourlySpeed: [
+          { hour: '6a', speed: 15 }, { hour: '7a', speed: 34 }, { hour: '8a', speed: 54 },
+          { hour: '9a', speed: 38 }, { hour: '10a', speed: 24 }, { hour: '11a', speed: 20 },
+          { hour: '12p', speed: 28 }, { hour: '1p', speed: 10 }, { hour: '2p', speed: 8 },
+          { hour: '3p', speed: 14 }, { hour: '4p', speed: 30 }, { hour: '5p', speed: 36 },
+          { hour: '6p', speed: 25 }, { hour: '7p', speed: 18 }, { hour: '8p', speed: 12 }
+        ],
+        hourlySteps: [
+          { hour: '6a', steps: 20, quiet: false }, { hour: '7a', steps: 110, quiet: false },
+          { hour: '8a', steps: 190, quiet: false }, { hour: '9a', steps: 130, quiet: false },
+          { hour: '10a', steps: 70, quiet: false }, { hour: '11a', steps: 50, quiet: false },
+          { hour: '12p', steps: 65, quiet: false }, { hour: '1p', steps: 8, quiet: true },
+          { hour: '2p', steps: 6, quiet: true }, { hour: '3p', steps: 12, quiet: true },
+          { hour: '4p', steps: 95, quiet: false }, { hour: '5p', steps: 104, quiet: false },
+          { hour: '6p', steps: 0, quiet: false }, { hour: '7p', steps: 0, quiet: false },
+          { hour: '8p', steps: 0, quiet: false }
+        ],
+        weeklySleep: [
+          { day: 'Mon', hrs: 6.8 }, { day: 'Tue', hrs: 6.5 }, { day: 'Wed', hrs: 6.7 },
+          { day: 'Thu', hrs: 6.4 }, { day: 'Fri', hrs: 6.9 }, { day: 'Sat', hrs: 6.5 },
+          { day: 'Last', hrs: 6.6 }
+        ],
+        hourlyHR: [
+          { hour: '6a', bpm: 68 }, { hour: '8a', bpm: 98 }, { hour: '10a', bpm: 78 },
+          { hour: '12p', bpm: 75 }, { hour: '2p', bpm: 70 }, { hour: '4p', bpm: 86 },
+          { hour: '6p', bpm: 76 }, { hour: '8p', bpm: 71 }
+        ],
+        interventions: [
+          {
+            title: '1. Follow-Up Call & Gentle Step Recovery (Target: 1,500 -> 2,000 steps/day)',
+            detail: 'Check in on Mdm Lim regarding her 7-day step drop (940 avg vs 1,800 baseline) and arrange a buddy walk to Margaret Drive market.'
+          },
+          {
+            title: '2. Supervised Morning Brisk Walk (15 mins at >=40 steps/min)',
+            detail: 'Encourage a short morning brisk walk around Dawson Park to lift her peak cadence back above 65 steps/min.'
+          },
+          {
+            title: '3. Break Up 1:00–4:00 PM Sedentary Window',
+            detail: 'Enable 3:00 PM movement prompt and invite her to twice-weekly HAPPY sessions at Mei Ling Street AAC.'
+          }
+        ]
+      },
+      {
+        id: 'ahmad-osman',
+        name: 'Mr Ahmad Bin Osman',
+        initials: 'AO',
+        code: '#NS-2031',
+        age: 74,
+        condition: 'Early MCI',
+        block: 'Blk 18 Holland Drive, Queenstown',
+        status: 'attention',
+        attentionType: 'sleep',
+        attentionTitle: 'ATTENTION: Sleep Duration Below Baseline',
+        attentionDetail: 'Last night sleep dropped to 4.1 hrs (-2.7 hrs below his 6.8 hr baseline); 4 restless awakenings between 1–4 AM.',
+        todaySteps: 2150,
+        avg7DaySteps: 2240,
+        baselineSteps: 2100,
+        goalSteps: 3000,
+        peakSpeed: 76,
+        lastSleepHrs: 4.1,
+        baselineSleepHrs: 6.8,
+        sleepEfficiency: '61%',
+        restingHR: 74,
+        peakHR: 108,
+        weeklySteps: [
+          { day: 'Mon', steps: 2280, isToday: false },
+          { day: 'Tue', steps: 2350, isToday: false },
+          { day: 'Wed', steps: 2190, isToday: false },
+          { day: 'Thu', steps: 2410, isToday: false },
+          { day: 'Fri', steps: 2120, isToday: false },
+          { day: 'Sat', steps: 2180, isToday: false },
+          { day: 'Today', steps: 2150, isToday: true }
+        ],
+        hourlySpeed: [
+          { hour: '6a', speed: 30 }, { hour: '7a', speed: 58 }, { hour: '8a', speed: 76 },
+          { hour: '9a', speed: 62 }, { hour: '10a', speed: 44 }, { hour: '11a', speed: 38 },
+          { hour: '12p', speed: 45 }, { hour: '1p', speed: 20 }, { hour: '2p', speed: 18 },
+          { hour: '3p', speed: 42 }, { hour: '4p', speed: 56 }, { hour: '5p', speed: 64 },
+          { hour: '6p', speed: 48 }, { hour: '7p', speed: 30 }, { hour: '8p', speed: 20 }
+        ],
+        hourlySteps: [
+          { hour: '6a', steps: 80, quiet: false }, { hour: '7a', steps: 290, quiet: false },
+          { hour: '8a', steps: 420, quiet: false }, { hour: '9a', steps: 310, quiet: false },
+          { hour: '10a', steps: 180, quiet: false }, { hour: '11a', steps: 140, quiet: false },
+          { hour: '12p', steps: 175, quiet: false }, { hour: '1p', steps: 22, quiet: true },
+          { hour: '2p', steps: 18, quiet: true }, { hour: '3p', steps: 160, quiet: false },
+          { hour: '4p', steps: 210, quiet: false }, { hour: '5p', steps: 145, quiet: false },
+          { hour: '6p', steps: 0, quiet: false }, { hour: '7p', steps: 0, quiet: false },
+          { hour: '8p', steps: 0, quiet: false }
+        ],
+        weeklySleep: [
+          { day: 'Mon', hrs: 6.7 }, { day: 'Tue', hrs: 6.5 }, { day: 'Wed', hrs: 5.8 },
+          { day: 'Thu', hrs: 4.9 }, { day: 'Fri', hrs: 4.5 }, { day: 'Sat', hrs: 4.3 },
+          { day: 'Last', hrs: 4.1 }
+        ],
+        hourlyHR: [
+          { hour: '6a', bpm: 72 }, { hour: '8a', bpm: 108 }, { hour: '10a', bpm: 82 },
+          { hour: '12p', bpm: 79 }, { hour: '2p', bpm: 75 }, { hour: '4p', bpm: 94 },
+          { hour: '6p', bpm: 80 }, { hour: '8p', bpm: 74 }
+        ],
+        interventions: [
+          {
+            title: '1. Daytime Sunlight Walk & Sleep Hygiene Review (Target: >=6.5 hrs sleep)',
+            detail: 'Review fragmented night sleep (4.1 hrs vs 6.8 hr baseline); encourage morning sunlight walk before 9:00 AM and avoid late afternoon naps.'
+          },
+          {
+            title: '2. Maintain Progressive Step Goal (3,000 steps/day)',
+            detail: 'Continue steady daily stepping (currently averaging 2,240 steps/day) while shifting brisk walking earlier to 4:30 PM.'
+          },
+          {
+            title: '3. Evening Wind-Down Routine',
+            detail: 'Recommend light stretching at 8:30 PM and consistent 10:00 PM bedtime.'
+          }
+        ]
+      },
+      {
+        id: 'john-tan',
+        name: 'John Tan',
+        initials: 'JT',
+        code: '#NS-2048',
+        age: 72,
+        condition: 'MCI',
+        block: 'Blk 85 Dawson Road, Queenstown',
+        status: 'ontrack',
+        attentionType: null,
+        attentionTitle: null,
+        attentionDetail: 'Progressing steadily (+12% above 1,000-step baseline; 1,120 steps today toward 2,000-step goal).',
+        todaySteps: 1120,
+        avg7DaySteps: 1079,
+        baselineSteps: 1000,
+        goalSteps: 2000,
+        peakSpeed: 70,
+        lastSleepHrs: 7.1,
+        baselineSleepHrs: 7.0,
+        sleepEfficiency: '88%',
+        restingHR: 68,
+        peakHR: 104,
+        weeklySteps: state.weeklySteps,
+        hourlySpeed: state.hourlySpeed,
+        hourlySteps: state.hourlySteps,
+        weeklySleep: [
+          { day: 'Mon', hrs: 6.9 }, { day: 'Tue', hrs: 7.2 }, { day: 'Wed', hrs: 6.8 },
+          { day: 'Thu', hrs: 7.1 }, { day: 'Fri', hrs: 7.0 }, { day: 'Sat', hrs: 7.3 },
+          { day: 'Last', hrs: 7.1 }
+        ],
+        hourlyHR: [
+          { hour: '6a', bpm: 64 }, { hour: '8a', bpm: 104 }, { hour: '10a', bpm: 76 },
+          { hour: '12p', bpm: 74 }, { hour: '2p', bpm: 68 }, { hour: '4p', bpm: 92 },
+          { hour: '6p', bpm: 78 }, { hour: '8p', bpm: 67 }
+        ],
+        interventions: [
+          {
+            title: '1. Progressive Daily Step Target (2,000 steps/day)',
+            detail: 'Set daily step target at 2,000 steps/day (+1,000 steps above 1,000-step baseline) and progress gradually toward 7,000–8,000 daily steps.'
+          },
+          {
+            title: '2. Daily Brisk Walking (15–30 mins at >=40 steps/min)',
+            detail: 'Introduce 15–30 minutes of purposeful brisk walking (>=40 steps/min) each day to increase walking speed and peak 30-minute cadence.'
+          },
+          {
+            title: '3. Afternoon 3:00 PM Movement Prompt',
+            detail: 'Maintain consistent daily step counts across consecutive days and prompt a 5-minute walk at 3:00 PM to break up the 1:00–3:00 PM sedentary window.'
+          }
+        ]
+      },
+      {
+        id: 'saraswathi-nair',
+        name: 'Mdm Saraswathi Nair',
+        initials: 'SN',
+        code: '#NS-2055',
+        age: 70,
+        condition: 'MCI',
+        block: 'Blk 162 Mei Ling Street, Queenstown',
+        status: 'ontrack',
+        attentionType: null,
+        attentionTitle: null,
+        attentionDetail: 'Consistent daily rhythm and brisk walking cadence (82 steps/min peak; 3,320 7-day step average).',
+        todaySteps: 3450,
+        avg7DaySteps: 3320,
+        baselineSteps: 3000,
+        goalSteps: 4000,
+        peakSpeed: 82,
+        lastSleepHrs: 7.4,
+        baselineSleepHrs: 7.2,
+        sleepEfficiency: '91%',
+        restingHR: 65,
+        peakHR: 110,
+        weeklySteps: [
+          { day: 'Mon', steps: 3180, isToday: false },
+          { day: 'Tue', steps: 3290, isToday: false },
+          { day: 'Wed', steps: 3410, isToday: false },
+          { day: 'Thu', steps: 3250, isToday: false },
+          { day: 'Fri', steps: 3390, isToday: false },
+          { day: 'Sat', steps: 3270, isToday: false },
+          { day: 'Today', steps: 3450, isToday: true }
+        ],
+        hourlySpeed: [
+          { hour: '6a', speed: 35 }, { hour: '7a', speed: 64 }, { hour: '8a', speed: 82 },
+          { hour: '9a', speed: 68 }, { hour: '10a', speed: 50 }, { hour: '11a', speed: 44 },
+          { hour: '12p', speed: 48 }, { hour: '1p', speed: 26 }, { hour: '2p', speed: 24 },
+          { hour: '3p', speed: 52 }, { hour: '4p', speed: 66 }, { hour: '5p', speed: 74 },
+          { hour: '6p', speed: 52 }, { hour: '7p', speed: 36 }, { hour: '8p', speed: 24 }
+        ],
+        hourlySteps: [
+          { hour: '6a', steps: 120, quiet: false }, { hour: '7a', steps: 420, quiet: false },
+          { hour: '8a', steps: 610, quiet: false }, { hour: '9a', steps: 460, quiet: false },
+          { hour: '10a', steps: 290, quiet: false }, { hour: '11a', steps: 230, quiet: false },
+          { hour: '12p', steps: 250, quiet: false }, { hour: '1p', steps: 80, quiet: false },
+          { hour: '2p', steps: 70, quiet: false }, { hour: '3p', steps: 260, quiet: false },
+          { hour: '4p', steps: 360, quiet: false }, { hour: '5p', steps: 300, quiet: false },
+          { hour: '6p', steps: 0, quiet: false }, { hour: '7p', steps: 0, quiet: false },
+          { hour: '8p', steps: 0, quiet: false }
+        ],
+        weeklySleep: [
+          { day: 'Mon', hrs: 7.2 }, { day: 'Tue', hrs: 7.4 }, { day: 'Wed', hrs: 7.3 },
+          { day: 'Thu', hrs: 7.5 }, { day: 'Fri', hrs: 7.1 }, { day: 'Sat', hrs: 7.6 },
+          { day: 'Last', hrs: 7.4 }
+        ],
+        hourlyHR: [
+          { hour: '6a', bpm: 62 }, { hour: '8a', bpm: 110 }, { hour: '10a', bpm: 78 },
+          { hour: '12p', bpm: 74 }, { hour: '2p', bpm: 66 }, { hour: '4p', bpm: 98 },
+          { hour: '6p', bpm: 76 }, { hour: '8p', bpm: 65 }
+        ],
+        interventions: [
+          {
+            title: '1. Progressive Step Target (4,000 steps/day)',
+            detail: 'Maintain 3,300+ daily average and progress toward 4,000 steps/day.'
+          },
+          {
+            title: '2. Sustain Brisk Walking Cadence (82 steps/min)',
+            detail: 'Continue twice-weekly Gym Tonic and morning brisk walks at Queenstown ActiveSG.'
+          }
+        ]
+      }
+    ];
+
+    // -------------------------------------------------------------------------
+    // 6. ROLE & TAB NAVIGATION CONTROLLERS
     // -------------------------------------------------------------------------
     function switchRole(newRole) {
       state.role = newRole;
@@ -778,6 +1210,8 @@
       closeOnboardingScreen();
 
       if (newRole === 'partner') {
+        state.selectedPartnerPatientId = null;
+      } else {
         state.tab = 'home';
       }
 
@@ -790,6 +1224,13 @@
     function switchTab(newTab) {
       state.tab = newTab;
       closePhoneModal();
+      renderPhoneApp();
+      const scroller = document.getElementById('phoneScreenContent');
+      if (scroller) scroller.scrollTop = 0;
+    }
+
+    function selectPartnerPatient(patientId) {
+      state.selectedPartnerPatientId = patientId;
       renderPhoneApp();
       const scroller = document.getElementById('phoneScreenContent');
       if (scroller) scroller.scrollTop = 0;
@@ -827,7 +1268,7 @@
         item.done = !item.done;
         renderPhoneApp();
         showPhoneToast(
-          item.done ? 'Action Completed 👏' : 'Action Unchecked',
+          item.done ? 'Action Completed' : 'Action Unchecked',
           item.text
         );
       }
@@ -837,7 +1278,7 @@
       state.sarahHearted = !state.sarahHearted;
       renderPhoneApp();
       if (state.sarahHearted) {
-        showPhoneToast('Sent ❤️ to Sarah', 'Sarah received your heart reaction!');
+        showPhoneToast('Sent Heart to Sarah', 'Sarah received your reaction!');
       }
     }
 
@@ -866,7 +1307,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // 5. IN-PHONE MODALS (ARTICLES & PROGRAMME WEBSITE PREVIEW)
+    // 7. IN-PHONE MODALS (ARTICLES & PROGRAMME WEBSITE PREVIEW)
     // -------------------------------------------------------------------------
     function openArticleModal(articleId) {
       const item = articlesCatalog.find(a => a.id === articleId);
@@ -895,6 +1336,36 @@
       modal.classList.remove('hidden');
     }
 
+    function openCaregiverArticleModal(articleId) {
+      const item = caregiverArticlesCatalog.find(a => a.id === articleId);
+      if (!item) return;
+
+      const modal = document.getElementById('phoneModal');
+      const badge = document.getElementById('phoneModalBadge');
+      const content = document.getElementById('phoneModalContent');
+
+      badge.textContent = item.badge;
+      content.innerHTML = `
+        <div class="space-y-2.5 animate-screen">
+          <div class="text-[10.5px] font-semibold text-neuro-deepOrange">${item.source}</div>
+          <h3 class="font-display font-extrabold text-sm text-neuro-ink leading-snug">${item.title}</h3>
+          <div class="space-y-2 pt-1">
+            ${item.fullText}
+          </div>
+          <div class="pt-2 space-y-1.5">
+            <a href="${item.url}" target="_blank" rel="noopener noreferrer"
+               class="w-full py-2.5 rounded-xl bg-neuro-orange hover:bg-neuro-darkOrange text-white font-semibold text-xs shadow flex items-center justify-center gap-1.5 transition">
+              <span>Read Full Guide on Official Website ↗</span>
+            </a>
+            <button onclick="closePhoneModal()" class="w-full py-2 rounded-xl bg-neuro-canvas text-neuro-ink font-semibold text-[11px] border border-neuro-border">
+              Back to Caregiver Articles
+            </button>
+          </div>
+        </div>
+      `;
+      modal.classList.remove('hidden');
+    }
+
     function openProgrammeWebsiteModal(progId) {
       const prog = communityProgrammesCatalog.find(p => p.id === progId);
       if (!prog) return;
@@ -906,7 +1377,6 @@
       badge.textContent = 'Website Preview';
       content.innerHTML = `
         <div class="space-y-3 animate-screen">
-          <!-- Simulated Mobile Browser URL Bar -->
           <div class="bg-gray-100 rounded-xl px-2.5 py-1.5 border border-gray-300 flex items-center justify-between gap-2">
             <div class="flex items-center gap-1.5 min-w-0">
               <i class="fa-solid fa-lock text-emerald-600 text-[10px]"></i>
@@ -917,7 +1387,6 @@
             </a>
           </div>
 
-          <!-- Simulated Programme Webpage Card -->
           <div class="bg-white rounded-2xl border border-neuro-border shadow-sm overflow-hidden">
             <div class="bg-neuro-blush p-3 border-b border-neuro-border space-y-0.5">
               <div class="text-[9.5px] font-bold uppercase tracking-wider text-neuro-deepOrange">${prog.org}</div>
@@ -925,6 +1394,7 @@
             </div>
             <div class="p-3 space-y-2.5 text-xs text-neuro-ink">
               <div class="bg-neuro-canvas p-2.5 rounded-xl border border-neuro-border space-y-1 text-[11px]">
+                <div><i class="fa-solid fa-route text-neuro-deepOrange w-4"></i> <strong>Proximity:</strong> ${prog.distanceLabel}</div>
                 <div><i class="fa-solid fa-building text-neuro-orange w-4"></i> <strong>Organisation:</strong> ${prog.org}</div>
                 <div><i class="fa-solid fa-location-dot text-neuro-teal w-4"></i> <strong>Where It Is Held:</strong> ${prog.venue}</div>
                 <div><i class="fa-solid fa-calendar-check text-amber-600 w-4"></i> <strong>Schedule:</strong> ${prog.schedule}</div>
@@ -938,7 +1408,7 @@
                   <span>Open Official Website in New Tab ↗</span>
                 </a>
                 <button onclick="closePhoneModal()" class="w-full py-2 rounded-xl bg-neuro-canvas text-neuro-ink font-semibold text-[11px] border border-neuro-border">
-                  Return to Community Programmes
+                  Return to Community Programmes Near You
                 </button>
               </div>
             </div>
@@ -995,30 +1465,48 @@
     }
 
     // -------------------------------------------------------------------------
-    // 6. SHARED 3 HEALTH METRIC CHARTS (NO BACKEND CATEGORY LABELS)
+    // 8. SHARED HEALTH METRIC CHARTS (SUPPORTS JOHN TAN OR ANY PARTNER PATIENT)
     // -------------------------------------------------------------------------
-    function renderDailyStepsCard() {
-      const maxScale = 2300;
+    function renderDailyStepsCard(customPatient) {
+      const weeklySteps = customPatient ? customPatient.weeklySteps : state.weeklySteps;
+      const goalSteps = customPatient ? customPatient.goalSteps : state.goalSteps;
+      const todaySteps = customPatient ? customPatient.todaySteps : state.todaySteps;
+      const maxVal = Math.max(goalSteps + 300, ...weeklySteps.map(d => d.steps));
       const chartH = 96;
-      const goalY = chartH - Math.round((state.goalSteps / maxScale) * chartH);
-      const stepsNeeded = Math.max(0, state.goalSteps - state.todaySteps);
+      const goalY = chartH - Math.round((goalSteps / maxVal) * chartH);
+      const stepsNeeded = Math.max(0, goalSteps - todaySteps);
+      const goalLabelShort = `${(goalSteps / 1000).toFixed(goalSteps % 1000 === 0 ? 0 : 1)}k`;
 
-      const barsSvg = state.weeklySteps.map((d, i) => {
-        const barH = Math.max(8, Math.round((d.steps / maxScale) * chartH));
+      const isStepsAlert = customPatient && customPatient.attentionType === 'steps';
+
+      const barsSvg = weeklySteps.map((d, i) => {
+        const barH = Math.max(8, Math.round((d.steps / maxVal) * chartH));
         const y = chartH - barH;
-        const fill = d.isToday ? '#E07A53' : '#F2C0AC';
+        const fill = isStepsAlert
+          ? (d.isToday ? '#DC2626' : '#FCA5A5')
+          : (d.isToday ? '#E07A53' : '#F2C0AC');
+        const textFill = isStepsAlert
+          ? (d.isToday ? '#B91C1C' : '#68635F')
+          : (d.isToday ? '#D96B43' : '#68635F');
         return `
           <g transform="translate(${16 + i * 41}, 0)">
             <rect x="0" y="${y}" width="22" height="${barH}" rx="5" fill="${fill}" />
-            <text x="11" y="${Math.max(10, y - 4)}" text-anchor="middle" font-size="8.2" font-weight="700" fill="${d.isToday ? '#D96B43' : '#68635F'}">${d.steps}</text>
+            <text x="11" y="${Math.max(10, y - 4)}" text-anchor="middle" font-size="8.2" font-weight="700" fill="${textFill}">${d.steps}</text>
             <text x="11" y="${chartH + 12}" text-anchor="middle" font-size="8.5" font-weight="${d.isToday ? '800' : '500'}" fill="${d.isToday ? '#1E1E1E' : '#68635F'}">${d.day}</text>
           </g>
         `;
       }).join('');
 
-      const footerMessage = state.role === 'patient'
-        ? `You only need <strong>${stepsNeeded.toLocaleString()} more steps</strong> today to reach your 2k goal!`
-        : `John only needs <strong>${stepsNeeded.toLocaleString()} more steps</strong> today to reach his 2k goal!`;
+      let footerMessage = '';
+      if (customPatient) {
+        footerMessage = isStepsAlert
+          ? `<span class="text-red-600 font-semibold">7-day average: ${customPatient.avg7DaySteps.toLocaleString()} steps/day (Baseline: ${customPatient.baselineSteps.toLocaleString()} steps/day)</span>`
+          : `${customPatient.name} needs <strong>${stepsNeeded.toLocaleString()} more steps</strong> today to reach the ${goalLabelShort} goal.`;
+      } else if (state.role === 'patient') {
+        footerMessage = `You only need <strong>${stepsNeeded.toLocaleString()} more steps</strong> today to reach your 2k goal!`;
+      } else {
+        footerMessage = `John only needs <strong>${stepsNeeded.toLocaleString()} more steps</strong> today to reach his 2k goal!`;
+      }
 
       return `
         <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
@@ -1028,17 +1516,14 @@
               <p class="text-[10.5px] text-neuro-muted">7-day step count (Mon – Today)</p>
             </div>
             <span class="text-[10.5px] font-bold px-2.5 py-0.5 rounded-full bg-neuro-blush text-neuro-deepOrange border border-neuro-orange/30">
-              Current Goal: 2k
+              Current Goal: ${goalLabelShort}
             </span>
           </div>
 
           <svg viewBox="0 0 305 114" class="w-full h-28 overflow-visible">
-            <!-- Dashed 2,000-step Target Line -->
             <line x1="8" y1="${goalY}" x2="298" y2="${goalY}" stroke="#E07A53" stroke-width="1.4" stroke-dasharray="4 3" />
-            <rect x="220" y="${goalY - 12}" width="76" height="11" rx="3" fill="#FDF5F2" />
-            <text x="258" y="${goalY - 4}" text-anchor="middle" font-size="7.8" font-weight="700" fill="#D96B43">Goal: 2,000</text>
-
-            <!-- X-Axis -->
+            <rect x="216" y="${goalY - 12}" width="80" height="11" rx="3" fill="#FDF5F2" />
+            <text x="256" y="${goalY - 4}" text-anchor="middle" font-size="7.8" font-weight="700" fill="#D96B43">Goal: ${goalSteps.toLocaleString()}</text>
             <line x1="8" y1="${chartH}" x2="298" y2="${chartH}" stroke="#E5E7EB" stroke-width="1.2" />
             ${barsSvg}
           </svg>
@@ -1050,14 +1535,16 @@
       `;
     }
 
-    function renderWalkingSpeedCard() {
-      const maxSpeed = 85;
+    function renderWalkingSpeedCard(customPatient) {
+      const hourlySpeed = customPatient ? customPatient.hourlySpeed : state.hourlySpeed;
+      const peakSpeed = customPatient ? customPatient.peakSpeed : state.peakSpeed;
+      const maxSpeed = 90;
       const chartH = 94;
       const leftPad = 24;
       const stepX = 19.2;
       const purposefulY = chartH - Math.round((40 / maxSpeed) * chartH);
 
-      const points = state.hourlySpeed.map((slot, idx) => {
+      const points = hourlySpeed.map((slot, idx) => {
         const x = leftPad + idx * stepX;
         const y = chartH - Math.round((slot.speed / maxSpeed) * chartH);
         return { x, y, speed: slot.speed, hour: slot.hour };
@@ -1074,7 +1561,7 @@
               <p class="text-[10.5px] text-neuro-muted">Walking speed (steps/min) from 6 AM to 8 PM</p>
             </div>
             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-neuro-amberLight text-amber-800 border border-amber-300">
-              Peak: 70 steps/min
+              Peak: ${peakSpeed} steps/min
             </span>
           </div>
 
@@ -1086,44 +1573,40 @@
               </linearGradient>
             </defs>
 
-            <!-- Dashed Line for Purposeful Walking Pace (40 steps/min) -->
             <line x1="20" y1="${purposefulY}" x2="298" y2="${purposefulY}" stroke="#2E7D6B" stroke-width="1.2" stroke-dasharray="3 3" />
             <text x="296" y="${purposefulY - 3}" text-anchor="end" font-size="7.5" font-weight="700" fill="#2E7D6B">Purposeful Pace (40 steps/min)</text>
             <text x="16" y="${purposefulY + 3}" text-anchor="end" font-size="7.5" fill="#2E7D6B">40</text>
-            <text x="16" y="12" text-anchor="end" font-size="7.5" fill="#9CA3AF">75</text>
+            <text x="16" y="12" text-anchor="end" font-size="7.5" fill="#9CA3AF">80</text>
             <text x="16" y="${chartH}" text-anchor="end" font-size="7.5" fill="#9CA3AF">0</text>
 
-            <!-- Baseline -->
             <line x1="20" y1="${chartH}" x2="298" y2="${chartH}" stroke="#E5E7EB" stroke-width="1.2" />
-
-            <!-- Area & Line -->
             <polygon points="${areaPoints}" fill="url(#speedAreaGrad)" />
             <polyline fill="none" stroke="#E07A53" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" points="${polylinePoints}" />
 
-            <!-- Data Nodes & Hour Labels -->
             ${points.map((p, i) => `
               <g>
-                <circle cx="${p.x}" cy="${p.y}" r="${p.speed === 70 ? 3.5 : 2.2}" fill="${p.speed >= 40 ? '#D96B43' : '#9CA3AF'}" />
-                ${p.speed === 70 ? `<text x="${p.x}" y="${p.y - 5}" text-anchor="middle" font-size="8" font-weight="800" fill="#D96B43">70 (8 AM)</text>` : ''}
+                <circle cx="${p.x}" cy="${p.y}" r="${p.speed === peakSpeed ? 3.5 : 2.2}" fill="${p.speed >= 40 ? '#D96B43' : '#9CA3AF'}" />
+                ${p.speed === peakSpeed ? `<text x="${p.x}" y="${p.y - 5}" text-anchor="middle" font-size="8" font-weight="800" fill="#D96B43">${peakSpeed} (8 AM)</text>` : ''}
                 ${i % 2 === 0 ? `<text x="${p.x}" y="${chartH + 11}" text-anchor="middle" font-size="7.8" fill="#68635F">${p.hour}</text>` : ''}
               </g>
             `).join('')}
           </svg>
 
           <p class="text-[11px] text-neuro-muted">
-            Tip: Add a 15-minute brisk walk (at least 40 steps/min) during your morning or evening outing.
+            Tip: Add a 15-minute brisk walk (at least 40 steps/min) during morning or evening outings.
           </p>
         </div>
       `;
     }
 
-    function renderStepsAcrossDayCard() {
-      const maxSteps = 300;
+    function renderStepsAcrossDayCard(customPatient) {
+      const hourlySteps = customPatient ? customPatient.hourlySteps : state.hourlySteps;
+      const maxSteps = Math.max(300, ...hourlySteps.map(s => s.steps));
       const chartH = 90;
       const leftPad = 20;
       const stepX = 19.2;
 
-      const barsSvg = state.hourlySteps.map((slot, idx) => {
+      const barsSvg = hourlySteps.map((slot, idx) => {
         const x = leftPad + idx * stepX;
         const barH = slot.steps > 0 ? Math.max(5, Math.round((slot.steps / maxSteps) * chartH)) : 2;
         const y = chartH - barH;
@@ -1149,7 +1632,6 @@
           </div>
 
           <svg viewBox="0 0 305 106" class="w-full h-26 overflow-visible">
-            <!-- Highlight 1 PM - 3 PM Sedentary Window -->
             <rect x="146" y="5" width="34" height="${chartH - 5}" rx="4" fill="#FEE2E2" opacity="0.6" />
             <text x="163" y="14" text-anchor="middle" font-size="7" font-weight="700" fill="#DC2626">1–3 PM Quiet</text>
 
@@ -1164,8 +1646,97 @@
       `;
     }
 
+    function renderSleepCardForPartner(p) {
+      const maxHrs = 9.0;
+      const chartH = 88;
+      const baseLineY = chartH - Math.round((p.baselineSleepHrs / maxHrs) * chartH);
+      const isSleepAlert = p.attentionType === 'sleep';
+
+      const barsSvg = p.weeklySleep.map((d, i) => {
+        const barH = Math.max(8, Math.round((d.hrs / maxHrs) * chartH));
+        const y = chartH - barH;
+        const isLow = d.hrs < p.baselineSleepHrs - 1.0;
+        const fill = isLow ? '#DC2626' : '#2E7D6B';
+        return `
+          <g transform="translate(${16 + i * 41}, 0)">
+            <rect x="0" y="${y}" width="22" height="${barH}" rx="5" fill="${fill}" />
+            <text x="11" y="${Math.max(10, y - 4)}" text-anchor="middle" font-size="8" font-weight="700" fill="${isLow ? '#B91C1C' : '#2E7D6B'}">${d.hrs}h</text>
+            <text x="11" y="${chartH + 12}" text-anchor="middle" font-size="8.2" fill="#68635F">${d.day}</text>
+          </g>
+        `;
+      }).join('');
+
+      return `
+        <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-display font-bold text-xs sm:text-sm text-neuro-ink">Sleep Duration &amp; Nightly Trend</h3>
+              <p class="text-[10.5px] text-neuro-muted">Last 7 nights • Efficiency: ${p.sleepEfficiency}</p>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-neuro-canvas border border-neuro-border ${isSleepAlert ? 'text-red-600' : 'text-neuro-teal'}">
+              Last Night: ${p.lastSleepHrs} hrs
+            </span>
+          </div>
+
+          <svg viewBox="0 0 305 108" class="w-full h-26 overflow-visible">
+            <line x1="8" y1="${baseLineY}" x2="298" y2="${baseLineY}" stroke="#2E7D6B" stroke-width="1.2" stroke-dasharray="4 3" />
+            <text x="296" y="${baseLineY - 3}" text-anchor="end" font-size="7.5" font-weight="700" fill="#2E7D6B">Baseline: ${p.baselineSleepHrs}h</text>
+            <line x1="8" y1="${chartH}" x2="298" y2="${chartH}" stroke="#E5E7EB" stroke-width="1.2" />
+            ${barsSvg}
+          </svg>
+
+          <p class="text-[11px] ${isSleepAlert ? 'text-red-600 font-semibold' : 'text-neuro-muted'}">
+            ${isSleepAlert
+              ? `Sleep duration is ${(p.baselineSleepHrs - p.lastSleepHrs).toFixed(1)} hrs below ${p.baselineSleepHrs} hr baseline.`
+              : `Nightly sleep duration is stable near ${p.baselineSleepHrs} hr baseline.`}
+          </p>
+        </div>
+      `;
+    }
+
+    function renderHeartRateCardForPartner(p) {
+      const maxBpm = 125;
+      const minBpm = 50;
+      const chartH = 84;
+      const leftPad = 24;
+      const stepX = 36;
+
+      const points = p.hourlyHR.map((slot, idx) => {
+        const x = leftPad + idx * stepX;
+        const y = chartH - Math.round(((slot.bpm - minBpm) / (maxBpm - minBpm)) * chartH);
+        return { x, y, bpm: slot.bpm, hour: slot.hour };
+      });
+      const poly = points.map(pt => `${pt.x},${pt.y}`).join(' ');
+
+      return `
+        <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-display font-bold text-xs sm:text-sm text-neuro-ink">Heart Rate &amp; Resting HR</h3>
+              <p class="text-[10.5px] text-neuro-muted">Resting HR: ${p.restingHR} bpm • Peak Walking HR: ${p.peakHR} bpm</p>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-neuro-blush text-neuro-deepOrange border border-neuro-orange/30">
+              ${p.restingHR} bpm RHR
+            </span>
+          </div>
+
+          <svg viewBox="0 0 305 102" class="w-full h-24 overflow-visible">
+            <line x1="18" y1="${chartH}" x2="294" y2="${chartH}" stroke="#E5E7EB" stroke-width="1.2" />
+            <polyline fill="none" stroke="#E07A53" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" points="${poly}" />
+            ${points.map(pt => `
+              <g>
+                <circle cx="${pt.x}" cy="${pt.y}" r="2.8" fill="#D96B43" />
+                <text x="${pt.x}" y="${pt.y - 5}" text-anchor="middle" font-size="7.5" font-weight="700" fill="#68635F">${pt.bpm}</text>
+                <text x="${pt.x}" y="${chartH + 11}" text-anchor="middle" font-size="7.8" fill="#68635F">${pt.hour}</text>
+              </g>
+            `).join('')}
+          </svg>
+        </div>
+      `;
+    }
+
     // -------------------------------------------------------------------------
-    // 7. VIEW 1: PATIENT VIEW SCREENS (JOHN TAN)
+    // 9. VIEW 1: PATIENT VIEW SCREENS (JOHN TAN)
     // -------------------------------------------------------------------------
     function renderPatientHome() {
       const progressPct = Math.min(100, Math.round((state.todaySteps / state.goalSteps) * 100));
@@ -1173,7 +1744,6 @@
 
       return `
         <div class="space-y-3 animate-screen">
-          <!-- Greeting Header -->
           <div class="flex items-center justify-between">
             <div>
               <h2 class="font-display font-extrabold text-base text-neuro-ink">Good morning, John</h2>
@@ -1198,7 +1768,6 @@
               </span>
             </div>
 
-            <!-- Progress Bar -->
             <div class="w-full h-2.5 rounded-full bg-white/90 border border-neuro-orange/20 overflow-hidden">
               <div class="bg-neuro-orange h-full rounded-full transition-all duration-500" style="width: ${progressPct}%"></div>
             </div>
@@ -1207,7 +1776,6 @@
               You only need <strong>${stepsRemaining.toLocaleString()} more steps</strong> today to reach your 2k goal!
             </p>
 
-            <!-- Button Leading to Data Screen -->
             <button onclick="switchTab('data')" class="w-full py-2.5 rounded-xl bg-neuro-orange hover:bg-neuro-darkOrange text-white font-semibold text-xs shadow flex items-center justify-center gap-1.5 transition">
               <i class="fa-solid fa-chart-column"></i>
               <span>View Your Health Metrics →</span>
@@ -1231,7 +1799,7 @@
                 <i class="fa-solid fa-heart text-neuro-orange"></i> ${state.sarahNote.from}
               </span>
               <button onclick="toggleSarahHeart()" class="text-[10.5px] px-2 py-0.5 rounded-full border transition ${state.sarahHearted ? 'bg-red-50 border-red-200 text-red-600 font-bold' : 'bg-neuro-canvas border-neuro-border text-neuro-muted'}">
-                <i class="fa-solid fa-heart mr-0.5"></i> ${state.sarahHearted ? 'Thanked' : 'Send ❤️'}
+                <i class="fa-solid fa-heart mr-0.5"></i> ${state.sarahHearted ? 'Thanked' : 'Send Heart'}
               </button>
             </div>
             <p class="text-xs text-neuro-ink italic leading-snug">
@@ -1267,7 +1835,7 @@
               </span>
             </div>
             <div onclick="switchTab('articles')" class="p-2.5 rounded-xl bg-neuro-blush/70 border border-neuro-orange/25 cursor-pointer hover:bg-neuro-peach transition space-y-1">
-              <div class="text-[10.5px] font-bold text-neuro-deepOrange">Mdm Tan, Age 74 • Toa Payoh</div>
+              <div class="text-[10.5px] font-bold text-neuro-deepOrange">Mdm Tan, Age 74 • Queenstown</div>
               <h4 class="font-display font-bold text-xs text-neuro-ink leading-snug">
                 "From Slow Morning Strolls to Brisk Kopitiam Walks: How Picking Up My Pace Cleared My Morning Fog"
               </h4>
@@ -1296,7 +1864,7 @@
       `;
     }
 
-    function renderArticlesScreen() {
+    function renderPatientArticlesScreen() {
       const filtered = articlesCatalog.filter(a => state.articleFilter === 'all' || a.category === state.articleFilter);
 
       return `
@@ -1308,7 +1876,6 @@
             <h2 class="font-display font-extrabold text-base text-neuro-ink">Articles</h2>
           </div>
 
-          <!-- Filter Pills -->
           <div class="flex items-center gap-1.5 text-[11px]">
             <button onclick="state.articleFilter='all'; renderPhoneApp();"
               class="px-2.5 py-1 rounded-lg font-semibold transition ${state.articleFilter === 'all' ? 'bg-neuro-orange text-white' : 'bg-white text-neuro-muted border border-neuro-border'}">
@@ -1324,7 +1891,6 @@
             </button>
           </div>
 
-          <!-- Articles Feed -->
           <div class="space-y-2.5">
             ${filtered.map(item => `
               <article onclick="openArticleModal('${item.id}')"
@@ -1346,19 +1912,54 @@
     }
 
     function renderCommunityProgrammesScreen() {
+      const filtered = communityProgrammesCatalog.filter(prog => {
+        if (state.programmeFilter === 'all') return true;
+        return prog.proximityGroup === state.programmeFilter;
+      });
+
       return `
         <div class="space-y-3 animate-screen">
           <div>
-            <span class="text-[10.5px] font-bold uppercase tracking-wider text-neuro-deepOrange">
-              Singapore Active Ageing Directory
-            </span>
-            <h2 class="font-display font-extrabold text-base text-neuro-ink">Community Programmes</h2>
+            <div class="flex items-center justify-between">
+              <span class="text-[10.5px] font-bold uppercase tracking-wider text-neuro-deepOrange">
+                Queenstown Active Ageing Directory
+              </span>
+              <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-neuro-tealLight text-neuro-teal border border-neuro-teal/30">
+                <i class="fa-solid fa-location-dot mr-0.5"></i> Queenstown (S141085)
+              </span>
+            </div>
+            <h2 class="font-display font-extrabold text-base text-neuro-ink mt-0.5">Community Programmes Near You</h2>
+          </div>
+
+          <!-- Proximity Filter Buttons -->
+          <div class="flex flex-wrap items-center gap-1 text-[10.5px]">
+            <button onclick="state.programmeFilter='nearest'; renderPhoneApp();"
+              class="px-2 py-1 rounded-lg font-semibold transition ${state.programmeFilter === 'nearest' ? 'bg-neuro-orange text-white shadow-sm' : 'bg-white text-neuro-muted border border-neuro-border'}">
+              Nearest (&lt; 2.5 km)
+            </button>
+            <button onclick="state.programmeFilter='short'; renderPhoneApp();"
+              class="px-2 py-1 rounded-lg font-semibold transition ${state.programmeFilter === 'short' ? 'bg-neuro-orange text-white shadow-sm' : 'bg-white text-neuro-muted border border-neuro-border'}">
+              Short Ride (2.5–6 km)
+            </button>
+            <button onclick="state.programmeFilter='home'; renderPhoneApp();"
+              class="px-2 py-1 rounded-lg font-semibold transition ${state.programmeFilter === 'home' ? 'bg-neuro-orange text-white shadow-sm' : 'bg-white text-neuro-muted border border-neuro-border'}">
+              At Home / Digital
+            </button>
+            <button onclick="state.programmeFilter='all'; renderPhoneApp();"
+              class="px-2 py-1 rounded-lg font-semibold transition ${state.programmeFilter === 'all' ? 'bg-neuro-orange text-white shadow-sm' : 'bg-white text-neuro-muted border border-neuro-border'}">
+              All (10)
+            </button>
           </div>
 
           <div class="space-y-2.5">
-            ${communityProgrammesCatalog.map(prog => `
+            ${filtered.map(prog => `
               <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
-                <h3 class="font-display font-bold text-xs sm:text-sm text-neuro-ink leading-snug">${prog.name}</h3>
+                <div class="flex items-start justify-between gap-2">
+                  <h3 class="font-display font-bold text-xs sm:text-sm text-neuro-ink leading-snug">${prog.name}</h3>
+                  <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-neuro-blush text-neuro-deepOrange border border-neuro-orange/30 shrink-0">
+                    ${prog.distanceKm > 0 ? `${prog.distanceKm} km` : 'At Home'}
+                  </span>
+                </div>
                 <div class="bg-neuro-canvas p-2 rounded-xl border border-neuro-border space-y-0.5 text-[10.5px] text-neuro-ink">
                   <div><i class="fa-solid fa-building text-neuro-orange w-3.5"></i> <strong>Organisation:</strong> ${prog.org}</div>
                   <div><i class="fa-solid fa-location-dot text-neuro-teal w-3.5"></i> <strong>Where It Is Held:</strong> ${prog.venue}</div>
@@ -1378,10 +1979,9 @@
       `;
     }
 
-    function renderProfileScreen() {
+    function renderPatientProfileScreen() {
       return `
         <div class="space-y-3 animate-screen">
-          <!-- Patient Details Card (No "Baseline" row) -->
           <div class="bg-neuro-blush rounded-2xl p-3.5 border border-[#F3DFD7] flex items-center gap-3">
             <div class="w-12 h-12 rounded-2xl bg-neuro-orange text-white font-display font-extrabold text-base flex items-center justify-center shadow">
               JT
@@ -1394,11 +1994,11 @@
                 </span>
               </div>
               <p class="text-[11px] text-neuro-muted mt-0.5">Age 72 • Mild Cognitive Impairment</p>
+              <p class="text-[11px] text-neuro-muted">Blk 85 Dawson Road, Queenstown (S141085)</p>
               <p class="text-[11px] font-semibold text-neuro-deepOrange mt-0.5">Current Goal: 2k steps/day</p>
             </div>
           </div>
 
-          <!-- Wearable Sync Card -->
           <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <div class="w-8 h-8 rounded-xl bg-neuro-tealLight text-neuro-teal flex items-center justify-center">
@@ -1414,7 +2014,6 @@
             </span>
           </div>
 
-          <!-- Primary Caregiver Details (No "Call Sarah" button) -->
           <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-1.5">
             <h3 class="font-display font-bold text-xs text-neuro-ink flex items-center gap-1.5">
               <i class="fa-solid fa-user-shield text-neuro-orange"></i> Primary Caregiver Details
@@ -1426,7 +2025,6 @@
             </div>
           </div>
 
-          <!-- Notification & Display Preferences -->
           <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
             <h3 class="font-display font-bold text-xs text-neuro-ink">Preferences</h3>
             <div class="flex items-center justify-between text-[11px]">
@@ -1447,7 +2045,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // 8. VIEW 2: CAREGIVER VIEW (SARAH TAN — REFERRING TO JOHN IN 3RD PERSON)
+    // 10. VIEW 2: CAREGIVER VIEW (SARAH TAN — NO QUOTE, CAREGIVER ARTICLES & PROFILE)
     // -------------------------------------------------------------------------
     function renderCaregiverHome() {
       const stepsRemaining = Math.max(0, state.goalSteps - state.todaySteps);
@@ -1455,7 +2053,6 @@
 
       return `
         <div class="space-y-3 animate-screen">
-          <!-- Caregiver Banner -->
           <div class="bg-amber-50 rounded-2xl p-3 border border-amber-200 flex items-center justify-between">
             <div>
               <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800">Caregiver View • Sarah Tan</span>
@@ -1466,7 +2063,6 @@
             </span>
           </div>
 
-          <!-- John's Daily Steps Card (3rd Person) -->
           <div class="bg-white rounded-2xl p-3.5 border border-neuro-border shadow-sm space-y-2.5">
             <div class="flex items-baseline justify-between">
               <div class="font-display font-extrabold text-base text-neuro-ink">
@@ -1489,34 +2085,23 @@
             </button>
           </div>
 
-          <!-- Daily Inspiration Quote Directly ABOVE Caregiver Encouragement Box -->
-          <div class="bg-neuro-amberLight/90 rounded-2xl p-3 border border-amber-300/70 shadow-sm space-y-1">
-            <div class="text-[9.5px] font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1">
-              <i class="fa-solid fa-sun text-amber-600"></i> Daily Inspiration
-            </div>
-            <p class="text-xs font-semibold text-neuro-ink italic leading-snug">
-              "${state.quote}"
-            </p>
-          </div>
-
-          <!-- What the Caregiver Can Do to Encourage John -->
+          <!-- What the Caregiver Can Do to Encourage John (No Daily Inspiration Quote above) -->
           <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
             <h3 class="font-display font-bold text-xs sm:text-sm text-neuro-ink">How You Can Encourage John Today</h3>
             <div class="space-y-1.5 text-[11px] text-neuro-ink">
               <div class="p-2 rounded-xl bg-neuro-canvas border border-neuro-border">
-                <strong>Walk together after dinner:</strong> Invite John for a 15-minute brisk walk to help him complete his remaining 880 steps at a purposeful pace.
+                <strong>Walk together after dinner:</strong> Invite John for a 15-minute brisk walk around Dawson Park to help him complete his remaining 880 steps at a purposeful pace.
               </div>
               <div class="p-2 rounded-xl bg-neuro-canvas border border-neuro-border">
                 <strong>Afternoon check-in at 3:00 PM:</strong> Remind John to take a short 5-minute walk around the block during his 1–3 PM quiet window.
               </div>
             </div>
-            <button onclick="sendCaregiverEncouragement('Great job this morning Dad! Let’s take a 15-minute brisk walk together after dinner!')"
+            <button onclick="sendCaregiverEncouragement('Great job this morning Dad! Let’s take a 15-minute brisk walk around Dawson Park together after dinner!')"
                     class="w-full py-2 rounded-xl bg-neuro-blush hover:bg-neuro-peach text-neuro-deepOrange text-[11px] font-bold border border-neuro-orange/30 transition">
               <i class="fa-solid fa-paper-plane mr-1"></i>Send Encouragement Note to John
             </button>
           </div>
 
-          <!-- John's Recommended Actions -->
           <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-1.5">
             <h3 class="font-display font-bold text-xs text-neuro-ink">John's Recommended Actions</h3>
             ${state.actions.map(act => `
@@ -1527,18 +2112,20 @@
             `).join('')}
           </div>
 
-          <!-- Hear others' stories -->
           <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-1.5">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-display font-bold text-neuro-ink">Hear others' stories</span>
+              <span class="text-xs font-display font-bold text-neuro-ink">Featured Caregiver Guide</span>
               <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-neuro-blush text-neuro-deepOrange border border-neuro-orange/30">
-                Real Stories
+                Caregiver Tips
               </span>
             </div>
             <div onclick="switchTab('articles')" class="p-2.5 rounded-xl bg-neuro-blush/70 border border-neuro-orange/25 cursor-pointer space-y-0.5">
-              <div class="text-[10.5px] font-bold text-neuro-deepOrange">Mdm Tan, Age 74</div>
+              <div class="text-[10.5px] font-bold text-neuro-deepOrange">HealthXchange.sg • SingHealth</div>
               <div class="text-xs font-bold text-neuro-ink leading-snug">
-                "From Slow Morning Strolls to Brisk Kopitiam Walks: How Picking Up My Pace Cleared My Morning Fog"
+                "Dementia Caregiver Tips: How to Provide the Best Care (Do's &amp; Don'ts)"
+              </div>
+              <div class="text-[10.5px] font-semibold text-neuro-orange pt-0.5">
+                Browse All Caregiver Guides &amp; Mental Health Tips →
               </div>
             </div>
           </div>
@@ -1546,71 +2133,310 @@
       `;
     }
 
-    // -------------------------------------------------------------------------
-    // 9. VIEW 3: COMMUNITY CARE PARTNER VIEW (DATA + RECOMMENDED INTERVENTIONS)
-    // -------------------------------------------------------------------------
-    function renderCommunityCarePartnerView() {
+    function renderCaregiverArticlesScreen() {
+      const filtered = caregiverArticlesCatalog.filter(a => state.caregiverArticleFilter === 'all' || a.category === state.caregiverArticleFilter);
+
       return `
         <div class="space-y-3 animate-screen">
-          <!-- Streamlined Patient Header (No "(Clinical)" label, no Clinical Findings) -->
-          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm flex items-center justify-between">
-            <div>
-              <span class="text-[10px] font-bold uppercase tracking-wider text-neuro-teal">Activity &amp; Intervention Summary</span>
-              <h2 class="font-display font-extrabold text-sm text-neuro-ink mt-0.5">John Tan • ID #NS-2048</h2>
-              <p class="text-[11px] text-neuro-muted">Age 72 • MCI • Avg Daily Steps: 1,000</p>
-            </div>
-            <span class="text-[10.5px] font-bold px-2.5 py-1 rounded-full bg-neuro-blush text-neuro-deepOrange border border-neuro-orange/30">
-              Current Goal: 2k
+          <div>
+            <span class="text-[10.5px] font-bold uppercase tracking-wider text-neuro-deepOrange">
+              Caregiver Resources &amp; Well-Being
             </span>
+            <h2 class="font-display font-extrabold text-base text-neuro-ink">Articles</h2>
           </div>
 
-          <!-- The 3 Health Metric Charts -->
-          ${renderDailyStepsCard()}
-          ${renderWalkingSpeedCard()}
-          ${renderStepsAcrossDayCard()}
+          <div class="flex flex-wrap items-center gap-1.5 text-[10.5px]">
+            <button onclick="state.caregiverArticleFilter='all'; renderPhoneApp();"
+              class="px-2.5 py-1 rounded-lg font-semibold transition ${state.caregiverArticleFilter === 'all' ? 'bg-neuro-orange text-white' : 'bg-white text-neuro-muted border border-neuro-border'}">
+              All (6)
+            </button>
+            <button onclick="state.caregiverArticleFilter='care'; renderPhoneApp();"
+              class="px-2.5 py-1 rounded-lg font-semibold transition ${state.caregiverArticleFilter === 'care' ? 'bg-neuro-orange text-white' : 'bg-white text-neuro-muted border border-neuro-border'}">
+              Providing Care Tips
+            </button>
+            <button onclick="state.caregiverArticleFilter='mental'; renderPhoneApp();"
+              class="px-2.5 py-1 rounded-lg font-semibold transition ${state.caregiverArticleFilter === 'mental' ? 'bg-neuro-orange text-white' : 'bg-white text-neuro-muted border border-neuro-border'}">
+              Caregiver Mental Health
+            </button>
+          </div>
 
-          <!-- Strictly What Was Recommended to the Patient -->
+          <div class="space-y-2.5">
+            ${filtered.map(item => `
+              <article onclick="openCaregiverArticleModal('${item.id}')"
+                       class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm hover:border-neuro-orange transition cursor-pointer space-y-1.5">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full border ${item.badgeClass}">
+                    ${item.badge}
+                  </span>
+                  <span class="text-[10px] font-medium text-neuro-muted truncate">${item.source}</span>
+                </div>
+                <h3 class="font-display font-bold text-xs text-neuro-ink leading-snug">${item.title}</h3>
+                <p class="text-[11px] text-neuro-muted leading-snug">${item.summary}</p>
+                <div class="text-[10.5px] font-semibold text-neuro-orange">Read Guide →</div>
+              </article>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCaregiverProfileScreen() {
+      return `
+        <div class="space-y-3 animate-screen">
+          <div class="bg-amber-50 rounded-2xl p-3.5 border border-amber-200 flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-neuro-orange text-white font-display font-extrabold text-base flex items-center justify-center shadow">
+              ST
+            </div>
+            <div class="flex-1 text-xs">
+              <div class="flex items-center justify-between">
+                <h2 class="font-display font-extrabold text-sm text-neuro-ink">Sarah Tan</h2>
+                <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-white text-amber-800 border border-amber-300">
+                  Primary Caregiver
+                </span>
+              </div>
+              <p class="text-[11px] text-neuro-muted mt-0.5">Age 44 • Daughter of John Tan</p>
+              <p class="text-[11px] text-neuro-muted">Blk 85 Dawson Road, Queenstown (S141085)</p>
+              <p class="text-[11px] font-semibold text-neuro-deepOrange mt-0.5">+65 9123 4567 • sarah.tan@email.sg</p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-1.5">
+            <h3 class="font-display font-bold text-xs text-neuro-ink flex items-center gap-1.5">
+              <i class="fa-solid fa-link text-neuro-orange"></i> Linked Patient Under Your Care
+            </h3>
+            <div class="p-2.5 rounded-xl bg-neuro-canvas border border-neuro-border flex items-center justify-between text-[11px]">
+              <div>
+                <div class="font-bold text-neuro-ink">John Tan (ID #NS-2048)</div>
+                <div class="text-neuro-muted">Age 72 • Mild Cognitive Impairment • Current Goal: 2k steps</div>
+              </div>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Synced
+              </span>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-1.5">
+            <h3 class="font-display font-bold text-xs text-neuro-ink flex items-center gap-1.5">
+              <i class="fa-solid fa-calendar-day text-neuro-teal"></i> Caregiving Routine &amp; Notifications
+            </h3>
+            <div class="text-[11px] text-neuro-ink space-y-1">
+              <div><strong>Evening Walk Schedule:</strong> Mon, Wed, Fri &amp; Sun at 6:45 PM (Dawson Park)</div>
+              <div><strong>Afternoon Check-In Alert:</strong> 3:00 PM sedentariness notification enabled</div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-1.5">
+            <h3 class="font-display font-bold text-xs text-neuro-ink flex items-center gap-1.5">
+              <i class="fa-solid fa-hands-holding-circle text-neuro-deepOrange"></i> Caregiver Support Network (Queenstown)
+            </h3>
+            <div class="text-[11px] text-neuro-muted space-y-0.5">
+              <div><strong>CREST-Caregiver Queenstown:</strong> FaithActs @ Mei Ling Street</div>
+              <div><strong>Dementia Singapore Helpline:</strong> 6377 0700</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------------------
+    // 11. VIEW 3: COMMUNITY CARE PARTNER DASHBOARD & CLICKABLE PATIENT DETAIL
+    // -------------------------------------------------------------------------
+    function renderPartnerDashboard() {
+      const filteredPatients = PARTNER_PATIENTS.filter(p => {
+        if (state.partnerFilter === 'all') return true;
+        return p.status === state.partnerFilter;
+      });
+
+      return `
+        <div class="space-y-3 animate-screen">
+          <!-- Cohort Header -->
+          <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-neuro-teal">Queenstown Active Ageing Hub</span>
+              <h2 class="font-display font-extrabold text-sm text-neuro-ink mt-0.5">Assigned Senior Cohort (4)</h2>
+              <p class="text-[10.5px] text-neuro-muted">Tap any senior to view full metrics &amp; interventions</p>
+            </div>
+          </div>
+
+          <!-- Filter Pills (No emojis) -->
+          <div class="flex items-center gap-1.5 text-[10.5px]">
+            <button onclick="state.partnerFilter='all'; renderPhoneApp();"
+              class="px-2.5 py-1 rounded-lg font-semibold transition ${state.partnerFilter === 'all' ? 'bg-neuro-orange text-white shadow-sm' : 'bg-white text-neuro-muted border border-neuro-border'}">
+              All Patients (4)
+            </button>
+            <button onclick="state.partnerFilter='attention'; renderPhoneApp();"
+              class="px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1 ${state.partnerFilter === 'attention' ? 'bg-red-600 text-white shadow-sm' : 'bg-white text-red-700 border border-red-200'}">
+              <i class="fa-solid fa-triangle-exclamation text-[10px]"></i>
+              <span>Attention (2)</span>
+            </button>
+            <button onclick="state.partnerFilter='ontrack'; renderPhoneApp();"
+              class="px-2.5 py-1 rounded-lg font-semibold transition ${state.partnerFilter === 'ontrack' ? 'bg-neuro-teal text-white shadow-sm' : 'bg-white text-neuro-muted border border-neuro-border'}">
+              On Track (2)
+            </button>
+          </div>
+
+          <!-- Patient Cohort Cards -->
+          <div class="space-y-2.5">
+            ${filteredPatients.map(p => {
+              const isAttention = p.status === 'attention';
+              const stepsFlag = p.attentionType === 'steps';
+              const sleepFlag = p.attentionType === 'sleep';
+
+              return `
+                <div onclick="selectPartnerPatient('${p.id}')"
+                     class="bg-white rounded-2xl overflow-hidden border transition cursor-pointer shadow-sm ${isAttention ? 'border-red-500 ring-1 ring-red-500/20 hover:border-red-600' : 'border-neuro-border hover:border-neuro-orange'}">
+
+                  ${isAttention ? `
+                    <!-- Keep .attention-banner style with ONLY the symbol and title -->
+                    <div class="attention-banner px-3 py-2 flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-1.5 text-[10.5px] font-extrabold tracking-wide uppercase">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>${p.attentionTitle}</span>
+                      </div>
+                      <span class="text-[9.5px] font-bold bg-white/20 px-2 py-0.5 rounded-full shrink-0">Review →</span>
+                    </div>
+                  ` : ''}
+
+                  <div class="p-3 space-y-2">
+                    <!-- Patient Details Row -->
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl font-display font-extrabold text-xs flex items-center justify-center text-white ${isAttention ? 'bg-red-600' : 'bg-neuro-orange'}">
+                          ${p.initials}
+                        </div>
+                        <div>
+                          <div class="flex items-center gap-1.5">
+                            <h3 class="font-display font-bold text-xs sm:text-sm text-neuro-ink">${p.name}</h3>
+                            <span class="text-[9.5px] font-semibold text-neuro-muted">${p.code}</span>
+                          </div>
+                          <p class="text-[10.5px] text-neuro-muted">Age ${p.age} • ${p.condition} • ${p.block}</p>
+                        </div>
+                      </div>
+                      ${!isAttention ? `
+                        <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          On Track
+                        </span>
+                      ` : ''}
+                    </div>
+
+                    <!-- Below-Baseline Details Under Patient Details (Red Words, Not Red Rectangle) -->
+                    <p class="text-[11px] leading-snug ${isAttention ? 'text-red-600 font-semibold' : 'text-neuro-muted'}">
+                      ${p.attentionDetail}
+                    </p>
+
+                    <!-- 3 Metric Summary Boxes (Standard neutral box background; red words if below baseline) -->
+                    <div class="grid grid-cols-3 gap-1.5 text-center pt-0.5">
+                      <div class="p-1.5 rounded-xl bg-neuro-canvas border border-neuro-border">
+                        <div class="text-[9.5px] font-semibold ${stepsFlag ? 'text-red-600' : 'text-neuro-muted'}">7-Day Steps</div>
+                        <div class="font-display font-extrabold text-xs ${stepsFlag ? 'text-red-600' : 'text-neuro-ink'}">${p.avg7DaySteps.toLocaleString()}</div>
+                        <div class="text-[9px] ${stepsFlag ? 'text-red-600 font-semibold' : 'text-neuro-muted'}">Base: ${p.baselineSteps.toLocaleString()}</div>
+                      </div>
+                      <div class="p-1.5 rounded-xl bg-neuro-canvas border border-neuro-border">
+                        <div class="text-[9.5px] font-semibold ${sleepFlag ? 'text-red-600' : 'text-neuro-muted'}">Sleep</div>
+                        <div class="font-display font-extrabold text-xs ${sleepFlag ? 'text-red-600' : 'text-neuro-ink'}">${p.lastSleepHrs} hrs</div>
+                        <div class="text-[9px] ${sleepFlag ? 'text-red-600 font-semibold' : 'text-neuro-muted'}">Base: ${p.baselineSleepHrs}h</div>
+                      </div>
+                      <div class="p-1.5 rounded-xl bg-neuro-canvas border border-neuro-border">
+                        <div class="text-[9.5px] font-semibold text-neuro-muted">Resting HR</div>
+                        <div class="font-display font-extrabold text-xs text-neuro-ink">${p.restingHR} bpm</div>
+                        <div class="text-[9px] text-neuro-muted">Peak: ${p.peakHR}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPartnerPatientDetail(p) {
+      const isAttention = p.status === 'attention';
+      const goalShort = `${(p.goalSteps / 1000).toFixed(p.goalSteps % 1000 === 0 ? 0 : 1)}k`;
+
+      return `
+        <div class="space-y-3 animate-screen">
+          <!-- Back to Cohort Dashboard Button -->
+          <button onclick="selectPartnerPatient(null)"
+                  class="px-3 py-1.5 rounded-xl bg-white border border-neuro-border text-xs font-bold text-neuro-orange hover:text-neuro-darkOrange shadow-sm flex items-center gap-1.5">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Back to Patient Dashboard</span>
+          </button>
+
+          <!-- Patient Header Card (With Attention Banner on Top if Flagged, and Red Words Under Patient Details) -->
+          <div class="bg-white rounded-2xl overflow-hidden border ${isAttention ? 'border-red-500' : 'border-neuro-border'} shadow-sm">
+            ${isAttention ? `
+              <div class="attention-banner px-3 py-2 flex items-center gap-1.5 text-[10.5px] font-extrabold tracking-wide uppercase">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>${p.attentionTitle}</span>
+              </div>
+            ` : ''}
+
+            <div class="p-3 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-neuro-teal">Patient Activity &amp; Biometrics</span>
+                  <h2 class="font-display font-extrabold text-sm text-neuro-ink mt-0.5">${p.name} • ${p.code}</h2>
+                  <p class="text-[11px] text-neuro-muted">Age ${p.age} • ${p.condition} • Baseline: ${p.baselineSteps.toLocaleString()} steps/day</p>
+                </div>
+                <span class="text-[10.5px] font-bold px-2.5 py-1 rounded-full bg-neuro-blush text-neuro-deepOrange border border-neuro-orange/30 shrink-0">
+                  Current Goal: ${goalShort}
+                </span>
+              </div>
+
+              <p class="text-[11px] leading-snug ${isAttention ? 'text-red-600 font-semibold' : 'text-neuro-muted'}">
+                ${p.attentionDetail}
+              </p>
+            </div>
+          </div>
+
+          <!-- 5 Specific Patient Metrics Graphs: Steps, Speed, Regularity, Sleep, Heart Rate -->
+          ${renderDailyStepsCard(p)}
+          ${renderWalkingSpeedCard(p)}
+          ${renderStepsAcrossDayCard(p)}
+          ${renderSleepCardForPartner(p)}
+          ${renderHeartRateCardForPartner(p)}
+
+          <!-- Recommended Interventions for Patient -->
           <div class="bg-white rounded-2xl p-3 border border-neuro-border shadow-sm space-y-2">
             <h3 class="font-display font-bold text-xs sm:text-sm text-neuro-ink">
               Recommended Interventions for Patient
             </h3>
             <div class="space-y-2 text-[11px] text-neuro-ink">
-              <div class="p-2.5 rounded-xl bg-neuro-canvas border border-neuro-border space-y-0.5">
-                <div class="font-bold text-neuro-ink">1. Progressive Daily Step Target (2,000 steps/day)</div>
-                <p class="text-neuro-muted leading-snug">
-                  Set daily step target at 2,000 steps/day (+1,000 steps above 1,000-step baseline) and progress gradually toward 7,000–8,000 daily steps.
-                </p>
-              </div>
-              <div class="p-2.5 rounded-xl bg-neuro-canvas border border-neuro-border space-y-0.5">
-                <div class="font-bold text-neuro-ink">2. Daily Brisk Walking (15–30 mins at &ge;40 steps/min)</div>
-                <p class="text-neuro-muted leading-snug">
-                  Introduce 15–30 minutes of purposeful brisk walking (&ge;40 steps/min) each day to increase walking speed and peak 30-minute cadence.
-                </p>
-              </div>
-              <div class="p-2.5 rounded-xl bg-neuro-canvas border border-neuro-border space-y-0.5">
-                <div class="font-bold text-neuro-ink">3. Afternoon 3:00 PM Movement Prompt</div>
-                <p class="text-neuro-muted leading-snug">
-                  Maintain consistent daily step counts across consecutive days and prompt a 5-minute walk at 3:00 PM to break up the 1:00–3:00 PM sedentary window.
-                </p>
-              </div>
+              ${p.interventions.map(intv => `
+                <div class="p-2.5 rounded-xl bg-neuro-canvas border border-neuro-border space-y-0.5">
+                  <div class="font-bold text-neuro-ink">${intv.title}</div>
+                  <p class="text-neuro-muted leading-snug">${intv.detail}</p>
+                </div>
+              `).join('')}
             </div>
           </div>
         </div>
       `;
     }
 
+    function renderCommunityCarePartnerView() {
+      if (state.selectedPartnerPatientId) {
+        const patient = PARTNER_PATIENTS.find(p => p.id === state.selectedPartnerPatientId);
+        if (patient) return renderPartnerPatientDetail(patient);
+      }
+      return renderPartnerDashboard();
+    }
+
     // -------------------------------------------------------------------------
-    // 10. BOTTOM NAVIGATION & MASTER RENDERER
+    // 12. BOTTOM NAVIGATION & MASTER RENDERER
     // -------------------------------------------------------------------------
     function renderBottomNav() {
       const nav = document.getElementById('phoneBottomNav');
 
       if (state.role === 'partner') {
         nav.innerHTML = `
-          <div class="py-1 px-3 text-[11px] font-bold text-neuro-teal flex items-center gap-1.5">
-            <i class="fa-solid fa-chart-column"></i>
-            <span>Activity &amp; Intervention Summary</span>
-          </div>
+          <button onclick="selectPartnerPatient(null)"
+                  class="py-1 px-3 text-[11px] font-bold text-neuro-teal flex items-center gap-1.5">
+            <i class="fa-solid fa-users-viewfinder"></i>
+            <span>${state.selectedPartnerPatientId ? '← Back to Cohort Dashboard (4 Patients)' : 'Community Care Partner Cohort Dashboard'}</span>
+          </button>
         `;
         return;
       }
@@ -1647,18 +2473,18 @@
       if (state.role === 'caregiver') {
         if (state.tab === 'home') container.innerHTML = renderCaregiverHome();
         else if (state.tab === 'data') container.innerHTML = renderDataScreen();
-        else if (state.tab === 'articles') container.innerHTML = renderArticlesScreen();
+        else if (state.tab === 'articles') container.innerHTML = renderCaregiverArticlesScreen();
         else if (state.tab === 'programmes') container.innerHTML = renderCommunityProgrammesScreen();
-        else container.innerHTML = renderProfileScreen();
+        else container.innerHTML = renderCaregiverProfileScreen();
         return;
       }
 
       // Patient View
       if (state.tab === 'home') container.innerHTML = renderPatientHome();
       else if (state.tab === 'data') container.innerHTML = renderDataScreen();
-      else if (state.tab === 'articles') container.innerHTML = renderArticlesScreen();
+      else if (state.tab === 'articles') container.innerHTML = renderPatientArticlesScreen();
       else if (state.tab === 'programmes') container.innerHTML = renderCommunityProgrammesScreen();
-      else container.innerHTML = renderProfileScreen();
+      else container.innerHTML = renderPatientProfileScreen();
     }
 
     window.onload = function () {
